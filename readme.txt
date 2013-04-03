@@ -12,17 +12,7 @@ Automatically recommend your posts to your site visitors
 
 == Description ==
 
-Kindred posts suggests your posts to visitors based on their past browsing history on your site. Your site learns how people are currently accessing your site and uses artificial intelligence to recommend posts that your visitors may find interesting.
-
-After this plugin is enabled, you can easily start collecting statistics and recommending posts by dragging and dropping a widget into your theme. 
-
-= Kindred Posts Premium =
-We will soon offer a premium version of this plugin with additional features
-* More options that control the look and feel of your widgets
-* More control over visit data
-* Integration with Google Analytics
-
-For more information about the premium version, please visit [our site](http://AiSpork.com/kindred-posts-premium)
+Kindred posts suggests your posts to visitors based on their past browsing history on your site. Your site learns how people are currently accessing your site and uses artificial intelligence to recommend posts that your visitors may find interesting. After this plugin is enabled, you can easily start collecting statistics and recommending posts by dragging and dropping a widget into your theme. 
 
 = Support =
 If you require support, you can visit the Help & Tutorials menu from the Kindred Posts Settings page. We also monitor the WordPress.org support forums but to receive faster support you should post your questions on our [forum](http://AiSpork.com/forums/). 
@@ -39,10 +29,6 @@ If you require support, you can visit the Help & Tutorials menu from the Kindred
 = How long after configuring the plugin does it take to recommend content? =
 
 Once you drop the Kindred Posts widget into your theme, you will start seeing posts immediately. Your recommendations will become more targeted after more visitors navigate through your website and the plugin has had a chance to learn about how visitors access your website.
-
-= How do I activate the Premium version? =
-
-Please visit [our site](http://AiSpork.com/kindred-posts-premium "Kindred Posts Premium") for more information.
 
 == Screenshots ==
 
