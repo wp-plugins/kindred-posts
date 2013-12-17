@@ -36,7 +36,4 @@ endif;
   <li>
     <a href="http://feeds.feedburner.com/AiSpork" rel="alternate" type="application/rss+xml"><img src="http://www.feedburner.com/fb/images/pub/feed-icon16x16.png" alt="" style="vertical-align:middle;border:0"/></a>&nbsp;<a href="http://feeds.feedburner.com/AiSpork" rel="alternate" type="application/rss+xml"><?php _e('Subscribe with RSS'); ?></a>
   </li>
-  <li>
-	<a href="http://twitter.com/AiSpork"><img src="<?php echo plugins_url('', __FILE__ ).'/images/twitter.png'; ?>"></a>&nbsp;<a href="http://twitter.com/AiSpork"><?php _e('Follow Ai Spork on Twitter'); ?></a>
-  </li>
 </ul>
