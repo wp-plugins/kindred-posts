@@ -24,7 +24,7 @@ function kp_settingsPage(){
 	global $defaultNumPostsToRecommend, $pluginUrl, $premiumVersionUrl, $helpUrl, $supportForumUrl, $maintainerUrl;
 	$Deleted = false;
 	if (isset($_POST['delete']) && $_POST['delete'] == "true"){
-		$wpdb->query($wpdb->prepare("DELETE FROM $visitTbl"));
+		$wpdb->query("DELETE FROM $visitTbl");
 		$Deleted = true;
 	}
 ?>
