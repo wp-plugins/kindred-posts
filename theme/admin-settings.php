@@ -22,14 +22,34 @@ function kp_settingsHead(){
 function kp_settingsPage(){
 	global $visitTbl, $wpdb;
 	global $defaultNumPostsToRecommend, $pluginUrl, $premiumVersionUrl, $helpUrl, $supportForumUrl, $maintainerUrl;
+	
+	$CollectStatistics = get_option('CollectStatistics', "true");
+	$AttemptToBlockBotVisits = get_option('AttemptToBlockBotVisits', "true");
+	$AdminTestMode = get_option('AdminTestMode', "false");	
+	
+	// Check if the admin wants to switch to test mode
+	if (isset($_GET['settings-updated']) && $_GET['settings-updated'] == "true") {
+		if ($AdminTestMode == "true") {
+			// They switched to test mode
+			// Check if we have test mode data already, if so, do not insert more
+			if (!kp_haveTestModeData()) {
+				kp_insertTestModeData();
+			} 
+		} else {
+			// They removed test mode
+			kp_deleteTestModeData();
+		}
+	}
+	
+	// Check if the admin wanted to delete the visit data
 	$Deleted = false;
 	if (isset($_POST['delete']) && $_POST['delete'] == "true"){
-		$wpdb->query("DELETE FROM $visitTbl");
+		kp_resetVisitData();
 		$Deleted = true;
 	}
 ?>
 	<div class="wrap">
-	<div id="yoast-icon" style="background: url(<?php echo plugins_url('', __FILE__ )."/../images/icon.png"; ?>) no-repeat;" class="icon32"><br></div>
+	<!--<div id="yoast-icon" style="background: url(<?php echo plugins_url('', __FILE__ )."/../images/icon.png"; ?>) no-repeat;" class="icon32"><br></div>-->
 	<h2><?php _e('Kindred Posts by Ai Spork'); ?></h2>	
 	
 	<p>
@@ -40,16 +60,40 @@ function kp_settingsPage(){
 		<a target="_top" href="<?php echo $maintainerUrl; ?>"><?php _e('Ai Spork Homepage'); ?></a>
 	<p>
 	
-	<?php if ($Deleted) { ?>
+	<?php 
+	if ($Deleted) { 
+	?>
 	<p class="Alert"><?php _e('Visit data has been removed'); ?></p>
-	<?php } ?>
+	<?php 
+	} 
+	?>
 	
-	<h3><strong>Plugin Status:
-	<?php if (get_option('CollectStatistics', "true") == "true") { ?>
-		<span style="color:green;"><?php _e('Collecting Data'); ?></span>
-	<?php } else { ?>
-		<span style="color:red;"><?php _e('Not Collecting Data'); ?></span>
-	<?php } ?></strong></h3>
+	<h3><strong><?php _e('Plugin Status:'); ?>
+	<?php
+	if (get_option('CollectStatistics', "true") == "true") { 
+	?>
+		<span style="color:green;">
+			<?php 
+			_e('Collecting Data'); 
+			if (get_option('AdminTestMode', "false") == "true") { 
+				_e(': In Test Mode');
+			}
+			?>
+		</span>
+	<?php
+	} else { 
+	?>
+		<span style="color:red;">
+			<?php 
+			_e('Not Collecting Data'); 
+			if (get_option('AdminTestMode', "false") == "true") { 
+				_e(': In Test Mode');
+			}
+			?>
+		</span>
+	<?php 
+	} 
+	?></strong></h3>
 	
 	<div class="postbox-container" style="width:65%;">
 	<div id="settings" class="postbox">
@@ -62,26 +106,41 @@ function kp_settingsPage(){
 
 	<form method="post" action="options.php">
 	
-	<?php kp_stringFieldSet(); ?>
-	
-	<input type="hidden" name="FirstSave" value="false" id="FirstSave" />
-	<?php settings_fields( 'kp_settings' ); ?> 
-	<?php do_settings_sections('kp_settings'); ?> 
-	<?php
-	$options = get_option('CollectStatistics', "true");
+	<?php 
+	kp_stringFieldSet(); 
 	?>
 	
+	<input type="hidden" name="FirstSave" value="false" id="FirstSave" />
+	<?php 
+	settings_fields('kp_settings');
+	do_settings_sections('kp_settings');
+	?>
+	<hr />
 	<p>
-	<input type="radio" name="CollectStatistics" value="true" id="CollectStatistics1"<?php if ($options == "true") { ?> checked="checked"<?php } ?> /> <label for="CollectStatistics1"><?php _e('Collect User Visit data'); ?></label> <br />
-	<input type="radio" name="CollectStatistics" value="false" id="CollectStatistics2"<?php if ($options != "true") { ?> checked="checked"<?php } ?> /> <label for="CollectStatistics2"><?php _e('<strong>STOP</strong> collecting User Visit data'); ?></label>
+		<input type="checkbox" name="AdminTestMode" value="true" id="AdminTestMode"<?php if ($AdminTestMode == "true") { ?> checked="checked"<?php } ?> />
+		<label for="AdminTestMode"><?php _e('In Test Mode - '); ?><a id="SeeMoreLink" href="#" onclick="document.getElementById('TestModeDescription').style.display = 'inline'; this.style.display = 'none'; return false;"><?php _e('Show More'); ?></a>
+		<span id="TestModeDescription" style="display:none;"><?php _e('Test mode allows administrators to see how the plugin will behave for website visitors using fake visit data. While in test mode, the widget will only appear to administrators that can edit plugins and themes. <br />NOTE: Even within test mode, data can still be collected about website visitors.'); ?> <a href="#" onclick="document.getElementById('TestModeDescription').style.display = 'none'; document.getElementById('SeeMoreLink').style.display = 'inline'; return false;"><?php _e('Show Less'); ?></a></span>
+		</label>
+		<br />
+	</p>	
+	
+	<p>
+		<input type="radio" name="CollectStatistics" value="true" id="CollectStatistics1"<?php if ($CollectStatistics == "true") { ?> checked="checked"<?php } ?> />
+		<label for="CollectStatistics1"><?php _e('Collect User Visit data'); ?></label>
+		<br />
+		
+		<input type="radio" name="CollectStatistics" value="false" id="CollectStatistics2"<?php if ($CollectStatistics != "true") { ?> checked="checked"<?php } ?> />
+		<label for="CollectStatistics2"><?php _e('<strong>STOP</strong> collecting User Visit data'); ?></label>
 	</p>
 	
-	<?php $AttemptToBlockBotVisits = get_option('AttemptToBlockBotVisits', "true"); ?>
 	<p>
 		<input type="radio" name="AttemptToBlockBotVisits" value="true"<?php if ($AttemptToBlockBotVisits == "true") { ?> checked="checked"<?php } ?> id="AttemptToBlockBotVisits1" />
-		<label for="AttemptToBlockBotVisits1"><?php _e('Ignore Bot Visits such as the Googlebot, Bingbot, etc. <em>(Recommended)'); ?></em></label> <br />
+		<label for="AttemptToBlockBotVisits1"><?php _e('Ignore Bot Visits such as the Googlebot, Bingbot, etc. <em>(Recommended)</em>'); ?></label>
+		<br />
+		
 		<input type="radio" name="AttemptToBlockBotVisits" value="false"<?php if ($AttemptToBlockBotVisits == "false") { ?> checked="checked"<?php } ?> id="AttemptToBlockBotVisits2" />
-		<label for="AttemptToBlockBotVisits2"><?php _e('Record Bot Visits'); ?></label> <br />
+		<label for="AttemptToBlockBotVisits2"><?php _e('Record Bot Visits'); ?></label>
+		<br />
 	</p>
 	<?php
 	if (kp_checkPro()){
@@ -89,7 +148,7 @@ function kp_settingsPage(){
 	}
 	?>
 	<p class="submit">
-    <input type="submit" class="button-primary" value="<?php _e('Save Changes') ?>" />
+		<input type="submit" class="button-primary" value="<?php _e('Save Changes') ?>" />
     </p>
 	</form>
 	</div>
@@ -105,7 +164,7 @@ function kp_settingsPage(){
 	?>
 	<p>
 		<?php _e('Number of Unique Visitors: ');
-		$visitor_count = $wpdb->get_var("SELECT COUNT(*) FROM $visitTbl");
+		$visitor_count = $wpdb->get_var("SELECT COUNT(*) FROM $visitTbl WHERE TestData='0'");
 		if ($visitor_count){
 			echo $visitor_count;
 		} else {
@@ -118,9 +177,9 @@ function kp_settingsPage(){
 				d.Date AS Date
 			 FROM
 				(
-					(SELECT CreateDate AS Date FROM $visitTbl ORDER BY CreateDate DESC LIMIT 1) 
+					(SELECT CreateDate AS Date FROM $visitTbl WHERE TestData='0' ORDER BY CreateDate DESC LIMIT 1) 
 						UNION
-					(SELECT UpdateDate AS Date FROM $visitTbl ORDER BY UpdateDate DESC LIMIT 1)
+					(SELECT UpdateDate AS Date FROM $visitTbl WHERE TestData='0' ORDER BY UpdateDate DESC LIMIT 1)
 				) d
 			ORDER BY d.Date DESC LIMIT 1"
 		);

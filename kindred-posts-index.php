@@ -3,7 +3,7 @@
 Plugin Name: Kindred Posts
 Plugin URI: http://aispork.com/kindred-posts
 Description: Automatically recommend your posts to your site visitors
-Version: 1.1
+Version: 1.2
 Author: Ai Spork LLC
 Author URI: http://aispork.com
 License: GPLv2 or later
@@ -35,6 +35,7 @@ include_once( plugin_dir_path( __FILE__ ) . 'kindred-posts-loader.php');
 // Register various hooks and actions for the plugin
 add_action('admin_menu', 'kp_registerSettingsPage'); // Used to add extra submenus and menu options to the admin panel's menu structure. It runs after the basic admin panel menu structure is in place.
 register_activation_hook(__FILE__, 'kp_createTable'); // Create the database table for the plugin when first registering the plugin
+add_action('plugins_loaded', 'kp_dbCheck'); // Check if we need to update the database
 add_filter('plugin_action_links', 'kp_pluginActions', 10, 2); // Applied to the list of links to display on the plugins page (beside the activate/deactivate links).
 add_action("the_post", "kp_saveVisit"); // Register a hook to save visits for each post
 add_action('widgets_init', create_function('', 'register_widget("kp_widget");')); // Register a hook for initializing the widget

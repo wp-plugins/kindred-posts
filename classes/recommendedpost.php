@@ -42,10 +42,7 @@ class kp_recommendedPost {
 		$data["show_post_teaser"] = (int)($data["kp_widget:postteaser"] == 1);
 		$data["has_content"] = $data["show_post_title"] || $data["show_post_thumbnail"] || $data["show_post_author"] || $data["show_post_date"] || $data["show_post_teaser"];
 	
-		//print_r($data);
-		
 		return $data;
-		//return kp_generateWidgetTemplate($data, $widgetOptions);
 	}
 	
 	/**

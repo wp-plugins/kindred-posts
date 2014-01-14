@@ -30,7 +30,7 @@ $kp_templates["kp_recommendedPost"] = '
 	
 	{if show_post_author}
 		<span style="{kp_widget:postauthor_style}">{kp:By} 
-			<span class="byline">
+			<span>
 				<span class="author vcard">
 					<a class="url fn n" onclick="{ga_author}" href="{author_user_url}" rel="author">{author_user_nicename}</a>
 				</span>
@@ -75,6 +75,7 @@ $kp_templates["kp_widget"] = '
 	{/if kp_widget:title_exists}
 	
 	{kp_recommender} {comment}Outputs the kp_recommender object template here{/comment}
+	{if isTestMode}<p>In Test Mode</p>{/if isTestMode}
 	{kp_widget:after_widget}
 ';
 ?>

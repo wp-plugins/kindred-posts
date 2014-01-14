@@ -128,23 +128,36 @@ class kp_recommender {
 			$numClosestUsersToUse = $defaultNumClosestUsersToUse;
 		}
 		
+		// Determine if we are test mode and an admin, if so, display the test mode data
+		$isTestMode = (get_option('AdminTestMode', "false") == "true" && current_user_can('edit_theme_options') && current_user_can('edit_plugins'));
+		if ($isTestMode) {
+			$testModeValue = "1";		
+		} else {
+			$testModeValue = "0";
+		}		
+		
 		// Reset the recomended posts
 		$this->posts = array();
 		
 		// Get the user's visit data
 		$user = $wpdb->get_row($wpdb->prepare("SELECT * FROM $visitTbl WHERE IP = %s", $this->ipAddress), OBJECT);
-		$userVisits = unserialize($user->Visits);
-		
+		$userVisits = unserialize($user->Visits);		
+
 		// Set up the closest number of users
 		$closestUsers = array();
 		
-		// Get the rest of the users within the past Max Update Date
-		$otherUsers = $wpdb->get_results($wpdb->prepare("
+		$sql = "
 			SELECT * 
 			FROM $visitTbl 
-			WHERE IP != %s AND (
-				UpdateDate > ADDDATE(NOW(), INTERVAL %d DAY) OR CreateDate > ADDDATE(NOW(), INTERVAL %d DAY)
-				)", array($this->ipAddress, -1*$maxPastUpdateDate, -1*$maxPastUpdateDate)), OBJECT);
+			WHERE 
+				TestData = '" . $testModeValue . "' AND 
+				IP != %s AND (
+					UpdateDate > ADDDATE(NOW(), INTERVAL %d DAY) OR CreateDate > ADDDATE(NOW(), INTERVAL %d DAY)
+				)";						
+		
+		// Get the rest of the users within the past Max Update Date (ignore test mode data)
+		$otherUsers = $wpdb->get_results($wpdb->prepare($sql, array($this->ipAddress, -1*$maxPastUpdateDate, -1*$maxPastUpdateDate)), OBJECT);		
+		
 		
 		foreach ($otherUsers as $otherUser) {
 			// Get the distance between the user and the other users
@@ -214,20 +227,18 @@ class kp_recommender {
 			}
 			
 			// Add the posts that the user has already visited
-			foreach ($userVisits as $postID => $numVisits) {
-				$ignoreIDs[$postID] = true;
+			if ($userVisits != null && count($userVisits) > 0) {
+				foreach ($userVisits as $postID => $numVisits) {
+					$ignoreIDs[$postID] = true;
+				}
 			}
-			
-			//echo "ignored posts: ";  print_r($ignoreIDs); echo "<br />";
-			//echo "visit counts: "; print_r($visitCounts); echo "<br />";
 			
 			$i = 0;
 			foreach($visitCounts as $id => $visitCount) {
 				// Check that the post isn't in the Ignore list and that we currently aren't on the post
-				if ($i < $numPostsToRecommend && !isset($ignoreIDs[$id]) && $curr_post_id != $id) {
-					//echo "recommended #". $i . ": " . $id . "<br />";
-					$post = new kp_recommendedPost($id);
-					array_push($this->posts, $post);
+				// If we are in test mode, we may recommend the current post
+				if ($i < $numPostsToRecommend && !isset($ignoreIDs[$id]) && ($isTestMode || (!$isTestMode && $curr_post_id != $id)) && $id != "") {			
+					array_push($this->posts, new kp_recommendedPost($id));
 					$i = $i + 1;
 				}
 			}

@@ -16,23 +16,71 @@ function kp_checkPro(){
 }
 
 /**
+ * Check if a string is a valid ip address
+ *
+ * @param string $ip: The string to check
+ * @return bool: Indicates if the string is a valid ip address
+ **/
+function kp_checkIP($ip) {
+	return !empty($ip);
+}
+
+/**
+ * Determine the user's IP Address
+ *
+ * @return string: The user's IP Address
+ **/
+function kp_determineIP() {
+	$serverIP = $_SERVER["SERVER_ADDR"];
+	
+	if (kp_checkIP($_SERVER["HTTP_CLIENT_IP"]) && $_SERVER["HTTP_CLIENT_IP"] != $serverIP) {
+		return $_SERVER["HTTP_CLIENT_IP"];
+	}
+
+	foreach (explode(",",$_SERVER["HTTP_X_FORWARDED_FOR"]) as $ip) {
+		if (kp_checkIP(trim($ip)) && trim($ip) != $serverIP) {
+			return $ip;
+		}
+	}
+	
+	if (kp_checkIP($_SERVER["HTTP_X_FORWARDED"]) && $_SERVER["HTTP_X_FORWARDED"] != $serverIP) {
+		return $_SERVER["HTTP_X_FORWARDED"];
+		
+	} elseif (kp_checkIP($_SERVER["HTTP_X_CLUSTER_CLIENT_IP"]) && $_SERVER["HTTP_X_CLUSTER_CLIENT_IP"] != $serverIP) {
+		return $_SERVER["HTTP_X_CLUSTER_CLIENT_IP"];
+		
+	} elseif (kp_checkIP($_SERVER["HTTP_FORWARDED_FOR"]) && $_SERVER["HTTP_FORWARDED_FOR"] != $serverIP) {
+		return $_SERVER["HTTP_FORWARDED_FOR"];
+		
+	} elseif (kp_checkIP($_SERVER["HTTP_FORWARDED"]) && $_SERVER["HTTP_FORWARDED"] != $serverIP) {
+		return $_SERVER["HTTP_FORWARDED"];
+		
+	} elseif (kp_checkIP($_SERVER["REMOTE_ADDR"]) && $_SERVER["REMOTE_ADDR"] != $serverIP) {
+		return $_SERVER["REMOTE_ADDR"];
+		
+	} else {
+		return $serverIP;
+	}
+}
+
+/**
  * Get the user's information
  *
  * @return array
  **/
 function kp_getUserData(){
 	// Get the user from the visit table (if they exist)
-	$ip = "";
-	if (isset($_SERVER['REMOTE_ADDR'])){
-		$ip = $_SERVER['REMOTE_ADDR'];
+	$ip = kp_determineIP();
+	if (strlen($ip) > 63) {
+		$ip = substr($ip, 0, 63);
 	}
 
 	// Save the user agent so we can ignore Bots in our recommendations
 	$ua = "";
 	if (isset($_SERVER['HTTP_USER_AGENT'])){
 		$ua = $_SERVER['HTTP_USER_AGENT'];
-		if (strlen($ua) > 128){
-			$ua = substr($ua, 0, 128);
+		if (strlen($ua) > 127){
+			$ua = substr($ua, 0, 127);
 		}
 	}
 
@@ -114,7 +162,7 @@ function kp_registerSettings(){
 	register_setting("kp_settings", "FirstSave");
 	register_setting("kp_settings", "CollectStatistics");
 	register_setting("kp_settings", "AttemptToBlockBotVisits");
-	register_setting("kp_settings", "SendUsage");
+	register_setting("kp_settings", "AdminTestMode");
 	
 	if (kp_checkPro()){
 		kp_prepareProSettings();
@@ -143,6 +191,12 @@ function kp_saveVisit($postObject) {
 	if (get_option('CollectStatistics', "true") == "false"){
 		return;
 	}
+	
+	// Check if we are in test mode and if the current user is an admin, don't collect their visit data
+	if (get_option('AdminTestMode', "false") == "true" && current_user_can('edit_theme_options') && current_user_can('edit_plugins')) {
+		return;
+	}
+	
 	$firstPost = false;
 	
 	$arr = kp_getUserData();

@@ -41,6 +41,7 @@ class kp_widget extends WP_Widget {
 		
 		// $Instance stores the values that we want to save in the database
 		$instance = array();
+		$instance['previouslysaved'] = (isset($newInstance['previouslysaved'] ) ? 1 : 0);
 		$instance['title'] = strip_tags($newInstance['title']);
 		$instance['numposts'] = strip_tags($newInstance['numposts']);
 		$instance['featureimage'] = (isset($newInstance['featureimage'] ) ? 1 : 0);  
@@ -62,44 +63,7 @@ class kp_widget extends WP_Widget {
 		}
 
 		return $instance;
-	}	
-
-	/**
-	 * Front-end display of widget.
-	 *
-	 * @see WP_Widget::widget()
-	 *
-	 * @param array $args: Widget arguments.
-	 * @param array $instance: Saved values from database.
-	 */
-	 /*
-	public function widget( $args, $instance ) {
-		extract( $args );
-		$title = apply_filters( 'widget_title', $instance['title'] );
-		
-		$RecommendedIDs = kp_RunRecommender(NULL, -1, $instance);
-		if (count($RecommendedIDs) > 0){
-		// Display the widget
-			echo $before_widget;
-			if ( !empty( $title ) && $title != ""){
-				echo $before_title . $title . $after_title;
-			}
-
-			foreach($RecommendedIDs as $key => $val){
-				if ($instance['orientation'] == "horizontal"){
-					if ($instance['alignment'] == "left" || $instance['alignment'] == "right"){
-					}
-					echo "<div style=\"float:" . $instance['alignment'] . ";\">";
-				}
-				echo kp_display($val, $instance);
-				if ($instance['orientation'] == "horizontal"){
-					echo "</div>";
-				}
-			}
-
-			echo $after_widget;
-		}	
-	}*/
+	}
 	
 	/**
 	 * Generates the widget html on the page
@@ -116,6 +80,11 @@ class kp_widget extends WP_Widget {
 	 **/
 	public function widget($args, $instance, $outputWidgetHtml = true, $template = "", $data = array(), $recommendedPosts = array(), $ip = "", $ua = "") {
 		global $defaultNumPostsToRecommend, $defaultNumClosestUsersToUse, $kp_templates;
+		
+		// Check if we are in test mode and if the user is an admin, if they aren't, don't show the widget
+		if (get_option('AdminTestMode', "false") == "true" && (!current_user_can('edit_theme_options') || !current_user_can('edit_plugins'))) {
+			return array("widgetHtml" => "", "recommender" => null);
+		}
 		
 		// Check if some of the widget arguments have been passed, if not, fix them
 		// so we don't run into any problems rendering the template
@@ -162,6 +131,7 @@ class kp_widget extends WP_Widget {
 			$title = apply_filters("widget_title", $instance["title"]);
 			
 			// Start the data for the widget
+			$data["isTestMode"] = (get_option('AdminTestMode', "false") == "true" && current_user_can('edit_theme_options') && current_user_can('edit_plugins'));
 			$data["kp_widget:before_widget"] = $args["before_widget"];
 			$data["kp_widget:after_widget"] = $args["after_widget"];
 			$data["kp_widget:title"] = $title;

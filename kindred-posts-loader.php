@@ -31,7 +31,6 @@ try {
 // Contains the functions for displaying forms and widgets on the site
 if (!$HavePro){
 	include_once(plugin_dir_path( __FILE__ ) . "/theme/admin-settings.php"); // The admin settings page
-	include_once(plugin_dir_path( __FILE__ ) . "/theme/widget.php"); // The widget display
 	include_once(plugin_dir_path( __FILE__ ) . "/theme/widget-settings.php"); // The widget settings form
 	include_once(plugin_dir_path( __FILE__ ) . "/theme/templates.php"); // The templates used to render objects in the plugin
 }

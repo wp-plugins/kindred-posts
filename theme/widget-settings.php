@@ -12,12 +12,16 @@
  * @return null
  **/ 
 function kp_widgetSettings($widgetObj, $instance) {
-	global $defaultOrientation;
+	global $defaultOrientation, $defaultNumPostsToRecommend;
 
 	$fieldIDTitle = $widgetObj->get_field_id("title");
 	$fieldNameTitle = $widgetObj->get_field_name("title");
 	$fieldIDNumPosts = $widgetObj->get_field_id("numposts");
 	$fieldNameNumPosts = $widgetObj->get_field_name("numposts");
+	
+	// Check if the widget has been saved previously
+	// if it hasn't, then use the default values
+	$previouslysaved = isset($instance['previouslysaved']);
 	
 	if (isset($instance['title'])) {
 		$title = $instance['title'];
@@ -29,7 +33,7 @@ function kp_widgetSettings($widgetObj, $instance) {
 	if (isset($instance['numposts'])) {
 		$numPosts = $instance['numposts'];
 	} else {
-		$numPosts = __('3', 'text_domain');
+		$numPosts = __((string)$defaultNumPostsToRecommend, 'text_domain');
 	}
 	$numPosts = esc_attr($numPosts);
 	 
@@ -38,9 +42,10 @@ function kp_widgetSettings($widgetObj, $instance) {
 	} else {
 		$orientation = $instance['orientation'];
 	}
-
-	// Title of Widget
 	?>
+	<input type="hidden" name="previouslysaved" value="1" />
+	
+	<?php // Title of Widget ?>
 	<p>
 	<label for="<?php echo $fieldIDTitle; ?>"><?php _e( 'Widget Title' ); ?></label> 
 	<input class="widefat" id="<?php echo $fieldIDTitle; ?>" name="<?php echo $fieldNameTitle; ?>" type="text" value="<?php echo $title; ?>" />
@@ -52,30 +57,30 @@ function kp_widgetSettings($widgetObj, $instance) {
 	<input class="widefat" id="<?php echo $fieldIDNumPosts; ?>" name="<?php echo $fieldNameNumPosts; ?>" type="text" value="<?php echo $numPosts; ?>" />
 	</p>
 	
-	<?php // Display Featured Image ?>
-	<p>
-	<input id="<?php echo $widgetObj->get_field_id( 'featureimage' ); ?>" name="<?php echo $widgetObj->get_field_name( 'featureimage' ); ?>" type="checkbox" class="checkbox" value="1" <?php checked( $instance['featureimage'], true ); ?> /> &nbsp; <label for="<?php echo $widgetObj->get_field_id( 'featureimage' ); ?>"><?php _e( 'Display Featured Image' ); ?></label>
-	</p>
-	
 	<?php // Display Post Title ?>
 	<p>
-	<input id="<?php echo $widgetObj->get_field_id( 'posttitle' ); ?>" name="<?php echo $widgetObj->get_field_name( 'posttitle' ); ?>" type="checkbox" class="checkbox" value="1" <?php checked( $instance['posttitle'], true ); ?> /> &nbsp; <label for="<?php echo $widgetObj->get_field_id( 'posttitle' ); ?>"><?php _e( 'Display Post Title' ); ?></label>
+	<input id="<?php echo $widgetObj->get_field_id( 'posttitle' ); ?>" name="<?php echo $widgetObj->get_field_name( 'posttitle' ); ?>" type="checkbox" class="checkbox" value="1" <?php checked( $instance['posttitle'] || !$previouslysaved, true ); ?> /> &nbsp; <label for="<?php echo $widgetObj->get_field_id( 'posttitle' ); ?>"><?php _e( 'Display Post Title' ); ?></label>
 	</p>
 	
 	<?php // Display Post Author ?>
 	<p>
-	<input id="<?php echo $widgetObj->get_field_id( 'postauthor' ); ?>" name="<?php echo $widgetObj->get_field_name( 'postauthor' ); ?>" type="checkbox" class="checkbox" value="1" <?php checked( $instance['postauthor'], true ); ?> /> &nbsp; <label for="<?php echo $widgetObj->get_field_id( 'postauthor' ); ?>"><?php _e( 'Display Post Author' ); ?></label>
+	<input id="<?php echo $widgetObj->get_field_id( 'postauthor' ); ?>" name="<?php echo $widgetObj->get_field_name( 'postauthor' ); ?>" type="checkbox" class="checkbox" value="1" <?php checked( $instance['postauthor'] || !$previouslysaved, true ); ?> /> &nbsp; <label for="<?php echo $widgetObj->get_field_id( 'postauthor' ); ?>"><?php _e( 'Display Post Author' ); ?></label>
 	</p>
 	
 	<?php // Display Post Date ?>
 	<p>
-	<input id="<?php echo $widgetObj->get_field_id( 'postdate' ); ?>" name="<?php echo $widgetObj->get_field_name( 'postdate' ); ?>" type="checkbox" class="checkbox" value="1" <?php checked( $instance['postdate'], true ); ?> /> &nbsp; <label for="<?php echo $widgetObj->get_field_id( 'postdate' ); ?>"><?php _e( 'Display Post Date' ); ?></label>
+	<input id="<?php echo $widgetObj->get_field_id( 'postdate' ); ?>" name="<?php echo $widgetObj->get_field_name( 'postdate' ); ?>" type="checkbox" class="checkbox" value="1" <?php checked( $instance['postdate'] || !$previouslysaved, true ); ?> /> &nbsp; <label for="<?php echo $widgetObj->get_field_id( 'postdate' ); ?>"><?php _e( 'Display Post Date' ); ?></label>
 	</p>
 	
 	<?php // Display Post Teaser ?>
 	<p>
 	<input id="<?php echo $widgetObj->get_field_id( 'postteaser' ); ?>" name="<?php echo $widgetObj->get_field_name( 'postteaser' ); ?>" type="checkbox" class="checkbox" value="1" <?php checked( $instance['postteaser'], true ); ?> /> &nbsp; <label for="<?php echo $widgetObj->get_field_id( 'postteaser' ); ?>"><?php _e( 'Display Post Teaser' ); ?></label> 
 	</p>
+
+	<?php // Display Featured Image ?>
+	<p>
+	<input id="<?php echo $widgetObj->get_field_id( 'featureimage' ); ?>" name="<?php echo $widgetObj->get_field_name( 'featureimage' ); ?>" type="checkbox" class="checkbox" value="1" <?php checked( $instance['featureimage'], true ); ?> /> &nbsp; <label for="<?php echo $widgetObj->get_field_id( 'featureimage' ); ?>"><?php _e( 'Display Featured Image' ); ?></label>
+	</p>	
 	
 	<?php // Display Orientation Radio Buttons ?>
 	<? _e('List Posts'); ?> 

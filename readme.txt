@@ -4,7 +4,7 @@ Donate link: http://AiSpork.com/
 Tags: data mining, artificial intelligence, recommendation, content recommendations, similar posts, related posts, content, relevant content
 Requires at least: 2.7.0
 Tested up to: 3.8
-Stable tag: 1.1
+Stable tag: 1.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,6 +54,8 @@ Please visit [our site](http://AiSpork.com/kindred-posts-premium "Kindred Posts 
 * The initial version, stay tuned for updates and new features.
 = 1.1 =
 * Restructuring of plugin and upgrades to the administration section.
+= 1.2 =
+* Added "Test Mode" so you can now see how website visitors view the widget. Also fixed a few bugs.
 
 == Upgrade Notice ==
 
@@ -61,3 +63,5 @@ Please visit [our site](http://AiSpork.com/kindred-posts-premium "Kindred Posts 
 * Initial Version. No upgrade necessary.
 = 1.1 =
 * No database changes.
+= 1.2 =
+* Updated table, changes should be made automatically.
