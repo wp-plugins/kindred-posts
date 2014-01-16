@@ -226,8 +226,8 @@ class kp_recommender {
 				$ignoreIDs[$post->ID] = true;
 			}
 			
-			// Add the posts that the user has already visited
-			if ($userVisits != null && count($userVisits) > 0) {
+			// Add the posts that the user has already visited only if we aren't in test mode
+			if (!$isTestMode && $userVisits != null && count($userVisits) > 0) {
 				foreach ($userVisits as $postID => $numVisits) {
 					$ignoreIDs[$postID] = true;
 				}

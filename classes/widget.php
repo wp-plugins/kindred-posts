@@ -79,7 +79,7 @@ class kp_widget extends WP_Widget {
 	 * @return string: The Html for the widget
 	 **/
 	public function widget($args, $instance, $outputWidgetHtml = true, $template = "", $data = array(), $recommendedPosts = array(), $ip = "", $ua = "") {
-		global $defaultNumPostsToRecommend, $defaultNumClosestUsersToUse, $kp_templates;
+		global $defaultNumPostsToRecommend, $kp_templates;
 		
 		// Check if we are in test mode and if the user is an admin, if they aren't, don't show the widget
 		if (get_option('AdminTestMode', "false") == "true" && (!current_user_can('edit_theme_options') || !current_user_can('edit_plugins'))) {
@@ -102,7 +102,35 @@ class kp_widget extends WP_Widget {
 		
 		if (!isset($args["after_title"])) {
 			$args["after_title"] = "";
+		}
+
+		if (!isset($instance["title"])) {
+			$instance["title"] = "";
+		}		
+		
+		if (!isset($instance["featureimage"])) {
+			$instance["featureimage"] = false;
+		}
+
+		if (!isset($instance["posttitle"])) {
+			$instance["posttitle"] = false;
 		}	
+
+		if (!isset($instance["postauthor"])) {
+			$instance["postauthor"] = false;
+		}	
+
+		if (!isset($instance["postdate"])) {
+			$instance["postdate"] = false;
+		}	
+
+		if (!isset($instance["postteaser"])) {
+			$instance["postteaser"] = false;
+		}			
+		
+		if ($template == "" && isset($kp_templates["kp_widget"])){
+			$template = $kp_templates["kp_widget"];
+		}
 		
 		// Check if the user has set the number of posts to recommend
 		if (!isset($instance["numposts"]) || !is_int((int)$instance["numposts"])) {
@@ -111,85 +139,28 @@ class kp_widget extends WP_Widget {
 			$numPostsToRecommend = (int)$instance["numposts"];
 		}
 		
-		// Check if recommendedPosts have been passed, if so, default to those
-		// or else recommend some
-		if (count($recommendedPosts) == 0) {
-			// Check if $ip and $ua have been passed, if not, generate it
-			if ($ip == "" && $ua == ""){
-				$arr = kp_getUserData();
-				extract($arr);
-			}
-			
-			// Run the recommender
-			$recommender = new kp_recommender($ip, $ua);
-			$recommender->run($numPostsToRecommend, $defaultNumClosestUsersToUse);
-			$recommendedPosts = $recommender->posts;
-		}	
+		$widgetTitle = apply_filters("widget_title", $instance["title"]);
 		
-		$widgetHtml = "";
-		if (count($recommendedPosts) > 0){
-			$title = apply_filters("widget_title", $instance["title"]);
-			
-			// Start the data for the widget
-			$data["isTestMode"] = (get_option('AdminTestMode', "false") == "true" && current_user_can('edit_theme_options') && current_user_can('edit_plugins'));
-			$data["kp_widget:before_widget"] = $args["before_widget"];
-			$data["kp_widget:after_widget"] = $args["after_widget"];
-			$data["kp_widget:title"] = $title;
-			$data["kp_widget:title_exists"] = (!empty($title) && $title != "");
-			$data["kp_widget:before_title"] = $args["before_title"];
-			$data["kp_widget:after_title"] = $args["after_title"];
-			
-			// Start data for this specific widget
-			$post_style = "padding-top:10px;padding-bottom:10px;";
-			$postimage_style = "display:inline;";
-			$posttitle_style = "display:inline;";
-			$postauthor_style = "display:inline;";
-			$postdate_style = "display:inline;";
-			$postteaser_style = "display:inline;";	
-			
-			if (kp_checkPro()){
-				$arr = kp_getProWidgetOptions($instance);
-				extract($arr);
-			}
-			
-			$data["kp_widget:post_style"] = $post_style;
-			$data["kp_widget:postimage_style"] = $postimage_style;
-			$data["kp_widget:posttitle_style"] = $posttitle_style;
-			$data["kp_widget:postauthor_style"] = $postauthor_style;
-			$data["kp_widget:postdate_style"] = $postdate_style;
-			$data["kp_widget:postteaser_style"] = $postteaser_style;
-			$data["kp:By"] = __('By');
-			$data["kp:on"] = __('on');
-			$data["kp:On"] = __('On');
-			
-			if (!isset($instance["alignment"])){
-				$alignment = $defaultAlignment;
-			} else {
-				$alignment = $instance["alignment"];
-			}
-			
-			$data["kp_widget:alignment"] = $alignment;
-			$data["kp_widget:orientation-horizontal"] = true;//($instance["orientation"] == "horizontal");
-			$data["kp_widget:featureimage"] = $instance["featureimage"];
-			$data["kp_widget:posttitle"] = $instance["posttitle"];
-			$data["kp_widget:postauthor"] = $instance["postauthor"];
-			$data["kp_widget:postdate"] = $instance["postdate"];
-			$data["kp_widget:postteaser"] = $instance["postteaser"];
-			
-			$data["kp_recommender"] = kp_recommender::renderPosts($recommendedPosts, "", $data);
-			
-			if ($template == "" && isset($kp_templates["kp_widget"])){
-				$template = $kp_templates["kp_widget"];
-			}
-			
-			$widgetHtml = kp_renderer::render($template, $data);
+		// Start data for this specific widget
+		$post_style = "padding-top:10px;padding-bottom:10px;";
+		$postimage_style = "display:inline;";
+		$posttitle_style = "display:inline;";
+		$postauthor_style = "display:inline;";
+		$postdate_style = "display:inline;";
+		$postteaser_style = "display:inline;";	
+		
+		if (kp_checkPro()){
+			$arr = kp_getProWidgetOptions($instance);
+			extract($arr);
 		}
 		
-		if ($outputWidgetHtml) {
-			echo $widgetHtml; // We echo the results and return them
+		if (!isset($instance["alignment"])){
+			$alignment = $defaultAlignment;
+		} else {
+			$alignment = $instance["alignment"];
 		}
 		
-		return array("widgetHtml" => $widgetHtml, "recommender" => $recommender);
+		return kp_renderWidget($numPostsToRecommend, $recommendedPosts, $template, $ip, $ua, $outputWidgetHtml, $widgetTitle, $post_style, $postimage_style, $posttitle_style, $postauthor_style, $postdate_style, $postteaser_style, $args["before_widget"], $args["after_widget"], $args["before_title"], $args["after_title"], $alignment, $instance["featureimage"], $instance["posttitle"], $instance["postauthor"], $instance["postdate"], $instance["postteaser"]);
 	}
 } // End kp_widget class
 ?>

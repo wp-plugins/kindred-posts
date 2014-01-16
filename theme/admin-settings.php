@@ -233,16 +233,18 @@ function kp_settingsPage(){
 	</div>
 	</div>
 	
+	<!--
 	<div class="postbox-container" style="float:right;margin-right:15px;">
 	<div id="settings" class="postbox">
 	<h3 class="hndle" style="font-size:15px;padding:7px 10px 7px 10px; cursor:default;"><span><?php _e('Ai Spork News'); ?></span></h3>
 	<div class="inside">
 		<div style="width: 285px; margin: 0 auto 15px auto;">
-		<?php include_once(plugin_dir_path( __FILE__ ) . "../kindred-posts-rss.php"); ?>
+		<?php // include_once(plugin_dir_path( __FILE__ ) . "../kindred-posts-rss.php"); ?>
 		</div>
 	</div>
 	</div>
 	</div>
+	-->
 <?php
 }
 
