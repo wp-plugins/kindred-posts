@@ -6,7 +6,7 @@
  **/
 function kp_settingsHead(){
 	if ($_SERVER["SCRIPT_NAME"] != null && stristr($_SERVER["SCRIPT_NAME"], "options-general.php") !== FALSE) {
-		if ($_GET["page"] != null && $_GET["page"] == "kp") {
+		if ($_GET["page"] != null && $_GET["page"] == "kindred-posts") {
 			echo "<link rel=\"shortcut icon\" href=\"" . plugins_url('', __FILE__ ) . "/../images/icon.ico\" />";
 		}
 	}
@@ -41,16 +41,30 @@ function kp_settingsPage(){
 		}
 	}
 	
+	$alert = "";
+	
 	// Check if the admin wanted to delete the visit data
 	$Deleted = false;
 	if (isset($_POST['delete']) && $_POST['delete'] == "true"){
 		kp_resetVisitData();
-		$Deleted = true;
+		$alert = "Visit data has been removed";
 	}
 ?>
 	<div class="wrap">
 	<!--<div id="yoast-icon" style="background: url(<?php echo plugins_url('', __FILE__ )."/../images/icon.png"; ?>) no-repeat;" class="icon32"><br></div>-->
 	<h2><?php _e('Kindred Posts by Ai Spork'); ?></h2>	
+	
+	<?php 
+	if ($alert != "") {
+	?>
+	<div id="setting-error-settings_updated" class="updated settings-error">
+		<p>
+			<strong><?php _e($alert); ?></strong>
+		</p>
+	</div>	
+	<?php 
+	} 
+	?>	
 	
 	<p>
 		<a target="_top" href="<?php echo $helpUrl; ?>"><?php _e('Support Forum'); ?></a>
@@ -59,14 +73,6 @@ function kp_settingsPage(){
 		&nbsp; | &nbsp;
 		<a target="_top" href="<?php echo $maintainerUrl; ?>"><?php _e('Ai Spork Homepage'); ?></a>
 	<p>
-	
-	<?php 
-	if ($Deleted) { 
-	?>
-	<p class="Alert"><?php _e('Visit data has been removed'); ?></p>
-	<?php 
-	} 
-	?>
 	
 	<h3><strong><?php _e('Plugin Status:'); ?>
 	<?php
@@ -95,8 +101,249 @@ function kp_settingsPage(){
 	} 
 	?></strong></h3>
 	
-	<div class="postbox-container" style="width:65%;">
-	<div id="settings" class="postbox">
+	<?php // Start left-side container ?>
+	<div class="postbox-container" style="width:65%; min-width:300px;">
+	<?php 
+	// Start Settings box
+	kp_settingsBox();
+	// End Settings box 
+
+	// Start User Visit Data box
+	kp_userVisitBox();
+	// End User Visit Data box 
+	?>
+	</div>
+	<?php // End left-side container  ?>
+	
+	<?php // Start right-side containers ?>
+	<div class="postbox-container" style="float:right; margin-left:15px; margin-right:15px; width:300px;">
+	<?php 
+	// Start Found Bug Box 
+	if (false) {
+		kp_foundBugBox();
+	}
+	// End Found Bug Box 
+	
+	// Start Feedback Box
+	kp_feedbackBox();
+	// End Feedback Box
+ 
+	// Start Premium Version Box 
+	kp_premiumVersionBox();
+	// End Premium Version Box 
+	// End Right Column 
+	?>
+	</div>
+	</div>
+<?php
+}
+/**
+ *
+ * The following functions render each box on the setting page
+ * 
+ **/
+function kp_feedbackBox() {
+	global $feedbackUrl;
+	
+	$hideFeedbackBox = (get_option("HideFeedbackBox", "false") == "true");
+	$feedbackMsg = get_option("FeedbackMsg", "");
+?>
+	<div id="feedbackBox" class="postbox">
+	<h3 class="hndle" style="font-size:15px; padding:7px 10px 7px 10px; cursor:default; <?php if ($hideFeedbackBox && $feedbackMsg == "") { ?>margin-bottom:0px;<?php } ?>">
+		<span><?php _e('How are we doing?'); ?></span>
+		
+		<?php if (!$hideFeedbackBox) { ?>
+		<a href="#" onclick="var hide='true'; toggleFeedbackBox(hide, ''); return false;" style="float:right;"><?php _e('Hide Form'); ?></a>
+		<?php } else { ?>
+		<a href="#" onclick="var hide='false'; toggleFeedbackBox(hide, ''); return false;" style="float:right;"><?php _e('Show Form'); ?></a>
+		<?php } ?>		
+	</h3>
+
+	<div class="inside" id="feedbackForm"<?php if ($hideFeedbackBox && $feedbackMsg == "") { ?> style="display:none;"<?php } ?>>
+	<div style="width:285px;">
+	<?php if (!$hideFeedbackBox) { ?>
+	<div>
+	
+	<form action="#" method="POST" onsubmit="return submitFeedback();">
+		<input type="hidden" name="confirm" id="confirm" value="false" />
+		<p><em><?php _e('All fields are optional'); ?></em></p>
+		
+		<p>
+			<label for="improve"><?php _e('Where do you think we can improve?'); ?></label><br />
+			<textarea id="improve" name="improve" style="width:95%;"></textarea>
+		</p>
+		
+		<p>
+			<label for="next"><?php _e('What would you like to see in the next version of Kindred Posts?'); ?></label><br />
+			<textarea id="next" name="next" style="width:95%;"></textarea>
+		</p>
+		
+		<h4>
+			<?php _e('Additional Information:'); ?>
+			<a href="#" id="OptionalInformationShow" onclick="document.getElementById('OptionalInformation').style.display='block'; this.style.display='none'; document.getElementById('OptionalInformationHide').style.display='inline'; return false;"><?php _e('Show'); ?></a> 
+			<a href="#" id="OptionalInformationHide" onclick="document.getElementById('OptionalInformation').style.display='none';this.style.display='none'; document.getElementById('OptionalInformationShow').style.display='inline'; return false;" style="display:none;"><?php _e('Hide'); ?></a>
+		</h4>
+		
+		<div id="OptionalInformation" style="display:none;">
+			<p>
+				<label for="websites"><?php _e('What website(s) do you plan to use Kindred Posts on?'); ?></label><br />
+				<textarea id="websites" name="websites" style="width:95%;"></textarea>
+			</p>
+			
+			<p>
+				<label for="why"><?php _e('Why did you choose Kindred Posts?'); ?></label><br />
+				<textarea id="why" name="why" style="width:95%;"></textarea>
+			</p>		
+		
+			<p><?php _e('If you would like us to personally contact you about your feedback.'); ?></p>
+			<p>
+				<label for="name"><?php _e('Your Name'); ?></label><br />
+				<input type="text" id="name" name="name" style="width:95%;" />
+			</p>
+			
+			<p>
+				<label for="email"><?php _e('Your Email'); ?></label><br />
+				<input type="text" id="email" name="email" style="width:95%;" />
+			</p>
+		</div>
+		<p align="center">
+			<input type="submit" value="<?php _e('Send Feedback'); ?>" class="button-primary" />
+		</p>
+	</form>
+	</div>
+	<?php 
+	} else if ($feedbackMsg != "") { 
+	?>
+	<span class="FeedbackMsg"><?php echo $feedbackMsg; ?></span>
+	<?php
+	} 
+	?>
+	<form method="post" action="options.php" id="HideFeedbackForm">
+		<?php 
+		settings_fields('kp_feedback');
+		do_settings_sections('kp_feedback');
+		?>	
+		<input type="hidden" id="HideFeedbackBox" name="HideFeedbackBox" value="false" />
+		<input type="hidden" id="FeedbackMsg" name="FeedbackMsg" value="" />
+	</form>
+	</div>
+	</div>
+	</div>
+	
+	<script type="text/javascript">
+	function clearFeedbackForm() {
+		jQuery("#improve").val("");
+		jQuery("#next").val("");
+		jQuery("#websites").val("");
+		jQuery("#why").val("");
+		jQuery("#name").val("");
+		jQuery("#email").val("");
+	}
+	
+	function toggleFeedbackBox(hide, msg) {
+		jQuery("#HideFeedbackBox").val(hide);
+		jQuery("#FeedbackMsg").val(msg);
+		jQuery("#HideFeedbackForm").submit();
+	}
+	
+	function postFeedback() {
+		var data = {
+			"improve": jQuery("#improve").val(), 
+			"next": jQuery("#next").val(),
+			"websites": jQuery("#websites").val(),
+			"why": jQuery("#why").val(),
+			"name": jQuery("#name").val(),
+			"email": jQuery("#email").val()
+		};
+		var feedbackMsg = "<?php _e("Thank you for your feedback!"); ?>";
+		
+		try {
+			jQuery.ajax({
+				type: "POST",
+				url: "<?php echo $feedbackUrl; ?>",
+				data: data,
+				crossDomain: true,	 
+				dataType: "text"
+			}).fail(function() {
+				alert(feedbackMsg);
+				clearFeedbackForm();
+				toggleFeedbackBox("true", feedbackMsg);
+			}).done(function() {
+				alert(feedbackMsg);
+				clearFeedbackForm();
+				toggleFeedbackBox("true", feedbackMsg);
+			});
+		} catch(e) {}
+	}
+	
+	function submitFeedback() {
+		if (confirm("<?php _e("Your privacy is important to us. Ai Spork does not and will not give out any of the information you have provided here. Please press OK to submit this feedback."); ?>")) { 
+			jQuery("#confirm").val("true");
+			postFeedback();
+		}
+		
+		return false;
+	}	
+	</script>
+<?php
+}
+
+function kp_foundBugBox() {
+?>
+	<div id="foundBugBox" class="postbox">
+	<h3 class="hndle" style="font-size:15px; padding:7px 10px 7px 10px; cursor:default;"><span><?php _e('Found a Bug?'); ?></span></h3>
+	<div class="inside">
+	<div style="width: 285px;">
+		<p><?php _e(kp_stringSupport()); ?></p>
+	</div>
+	</div>
+	</div>
+<?php
+}
+
+function kp_premiumVersionBox() {
+	global $premiumVersionUrl;
+	
+	if (kp_checkPro()){
+		return;
+	}
+?>
+	<div id="premiumVersionBox" class="postbox">
+	<h3 class="hndle" style="font-size:15px;padding:7px 10px 7px 10px; cursor:default;"><span><?php _e('Premium Version Information'); ?></span></h3>
+	<div class="inside">
+	<div style="width: 285px; margin: 0 auto 0px auto;">
+	<?php 
+		_e(kp_stringPro2());
+	?>
+	<div align="center">
+		<a href="<?php echo $premiumVersionUrl; ?>" class="button-primary"><?php _e('Get the Premium Version') ?></a>
+	</div>
+	</div>
+	</div>
+	</div>
+<?php 
+}
+
+function kp_rssBox() {
+?>
+	<div id="rssBox" class="postbox">
+	<h3 class="hndle" style="font-size:15px;padding:7px 10px 7px 10px; cursor:default;"><span><?php _e('Ai Spork News'); ?></span></h3>
+	<div class="inside">
+		<div style="width: 285px; margin: 0 auto 15px auto;">
+		<?php include_once(plugin_dir_path( __FILE__ ) . "../kindred-posts-rss.php"); ?>
+		</div>
+	</div>
+	</div>
+<?php
+}
+
+function kp_settingsBox() {
+	$CollectStatistics = get_option('CollectStatistics', "true");
+	$AttemptToBlockBotVisits = get_option('AttemptToBlockBotVisits', "true");
+	$AdminTestMode = get_option('AdminTestMode', "false");	
+
+?>
+	<div id="settingsBox" class="postbox">
 	<h3 class="hndle" style="font-size:15px;padding:7px 10px 7px 10px; cursor:default;">
 		<span>
 			<?php _e('Settings'); ?>
@@ -119,7 +366,7 @@ function kp_settingsPage(){
 	<p>
 		<input type="checkbox" name="AdminTestMode" value="true" id="AdminTestMode"<?php if ($AdminTestMode == "true") { ?> checked="checked"<?php } ?> />
 		<label for="AdminTestMode"><?php _e('In Test Mode - '); ?><a id="SeeMoreLink" href="#" onclick="document.getElementById('TestModeDescription').style.display = 'inline'; this.style.display = 'none'; return false;"><?php _e('Show More'); ?></a>
-		<span id="TestModeDescription" style="display:none;"><?php _e('Test mode allows administrators to see how the plugin will behave for website visitors using fake visit data. While in test mode, the widget will only appear to administrators that can edit plugins and themes. <br />NOTE: Even within test mode, data can still be collected about website visitors.'); ?> <a href="#" onclick="document.getElementById('TestModeDescription').style.display = 'none'; document.getElementById('SeeMoreLink').style.display = 'inline'; return false;"><?php _e('Show Less'); ?></a></span>
+		<span id="TestModeDescription" style="display:none;"><?php _e('Test mode allows administrators to see how the plugin will behave for website visitors using fake visit data. While in test mode, the widget will only appear to administrators that can edit plugins and themes. NOTE: Even within test mode, data can still be collected about website visitors.'); ?> <a href="#" onclick="document.getElementById('TestModeDescription').style.display = 'none'; document.getElementById('SeeMoreLink').style.display = 'inline'; return false;"><?php _e('Show Less'); ?></a></span>
 		</label>
 		<br />
 	</p>	
@@ -153,8 +400,13 @@ function kp_settingsPage(){
 	</form>
 	</div>
 	</div>
-	
-	<div id="settings" class="postbox">
+<?php
+}
+
+function kp_userVisitBox() {
+	global $visitTbl, $wpdb;
+?>
+	<div id="userVisitBox" class="postbox">
 	<h3 class="hndle" style="font-size:15px;padding:7px 10px 7px 10px; cursor:default;"><span><?php _e('User Visit Data'); ?></span></h3>
 	<div class="inside">
 	<?php
@@ -199,52 +451,8 @@ function kp_settingsPage(){
 		<input type="hidden" name="delete" value="true" />
 		<input type="submit" class="button-primary" value="<?php _e('Delete ALL Visitor Data') ?>" />
 	</form>
-
 	</div>
-	</div>
-	</div>
-	</div>
-<?php if (!kp_checkPro()){ ?>
-	<div class="postbox-container" style="float:right;margin-right:15px;">
-	<div id="settings" class="postbox">
-	<h3 class="hndle" style="font-size:15px;padding:7px 10px 7px 10px; cursor:default;"><span><?php _e('Premium Version Information'); ?></span></h3>
-	<div class="inside">
-		<div style="width: 285px; margin: 0 auto 15px auto;">
-	<?php 
-		_e(kp_stringPro2());
-	?>		
-	<form action="<?php echo $premiumVersionUrl; ?>">
-		<input type="submit" class="button-primary" value="<?php _e('Get the Premium Version') ?>" />
-	</form>
-		</div>
-	</div>
-	</div>
-	</div>
-<?php } ?>
-	
-	<div class="postbox-container" style="float:right;margin-right:15px;">
-	<div id="settings" class="postbox">
-	<h3 class="hndle" style="font-size:15px;padding:7px 10px 7px 10px; cursor:default;"><span><?php _e('Found a Bug?'); ?></span></h3>
-	<div class="inside">
-		<div style="width: 285px; margin: 0 auto 15px auto;">
-		<p><?php _e(kp_stringSupport()); ?></p>
-		</div>
-	</div>
-	</div>
-	</div>
-	
-	<!--
-	<div class="postbox-container" style="float:right;margin-right:15px;">
-	<div id="settings" class="postbox">
-	<h3 class="hndle" style="font-size:15px;padding:7px 10px 7px 10px; cursor:default;"><span><?php _e('Ai Spork News'); ?></span></h3>
-	<div class="inside">
-		<div style="width: 285px; margin: 0 auto 15px auto;">
-		<?php // include_once(plugin_dir_path( __FILE__ ) . "../kindred-posts-rss.php"); ?>
-		</div>
-	</div>
-	</div>
-	</div>
-	-->
+	</div>	
 <?php
 }
 

@@ -7,7 +7,7 @@ global $wpdb, $visitTbl, $postTbl, $defaultNumClosestUsersToUse, $maxPastUpdateD
 global $showTitle, $showAuthor, $showDate, $showExcerpt, $showFeaturedImage, $firstPost, $defaultOrientation, $defaultAlignment;
 global $kp_code_version, $kp_db_version;
 
-$kp_code_version = "1.2.1"; // The version of code
+$kp_code_version = "1.2.2"; // The version of code
 $kp_db_version = "1.1"; // The database version
 
 $visitTbl = $wpdb->prefix . "kindred_posts_visits";
@@ -29,6 +29,7 @@ $pluginUrl = "http://aispork.com/kindred-posts";
 $premiumVersionUrl = "http://aispork.com/kindred-posts-premium";
 $helpUrl = "http://aispork.com/forums/";
 $supportForumUrl = "http://aispork.com/forums/";
+$feedbackUrl = "http://aispork.com/feedback/kindred-posts/";
 
 // List of keywords that will denote a bot, must be lower case
 $botArr = array(

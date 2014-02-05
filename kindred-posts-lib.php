@@ -22,7 +22,7 @@ function kp_checkPro(){
  * @return bool: Indicates if the string is a valid ip address
  **/
 function kp_checkIP($ip) {
-	return !empty($ip);
+	return (isset($ip) && !empty($ip));
 }
 
 /**
@@ -129,7 +129,7 @@ function kp_isUserVisitValid($ip, $ua){
 
 function kp_pluginActions($links, $file) {
  	if( $file == "kindred-posts/kindred-posts-index.php" && function_exists("admin_url")) {
-		$settings_link = '<a href="' . admin_url( 'options-general.php?page=kp' ) . '">' . __('Settings') . '</a>';
+		$settings_link = '<a href="' . admin_url( 'options-general.php?page=kindred-posts' ) . '">' . __('Settings') . '</a>';
 		
 		array_unshift($links, $settings_link); // before other links
 	}
@@ -152,7 +152,7 @@ function kp_prepareGoogleAnalytics($str = ""){
 }
 
 function kp_registerSettingsPage(){
-	add_submenu_page("options-general.php", "Kindred Posts", "Kindred Posts", "edit_plugins", "kp", "kp_settingsPage"); 
+	add_submenu_page("options-general.php", "Kindred Posts", "Kindred Posts", "edit_plugins", "kindred-posts", "kp_settingsPage"); 
 	
 	// call register settings function
 	add_action("admin_init", "kp_registerSettings");
@@ -163,6 +163,8 @@ function kp_registerSettings(){
 	register_setting("kp_settings", "CollectStatistics");
 	register_setting("kp_settings", "AttemptToBlockBotVisits");
 	register_setting("kp_settings", "AdminTestMode");
+	register_setting("kp_feedback", "HideFeedbackBox");
+	register_setting("kp_feedback", "FeedbackMsg");
 	
 	if (kp_checkPro()){
 		kp_prepareProSettings();
@@ -175,10 +177,10 @@ function kp_registerSettings(){
  * @param int $numPostsToRecommend: The number of posts to recommend (recommendations will be generated if $recommendedPosts is empty)
  * @param array $recommendedPosts: The posts to recommend (if empty, recommendations will be generated)
  * @param string $template: The template to use to render the widget (if blank, will be generated using theme\template.php)
- * @param string $ip: The ip address to use for this user (if blank, this will be found)
- * @param string $ua: The user agent to use for this user (if blank, this will be found)
+ * @param string $ip: The ip address of the user to recommend posts for (if blank, this will be found)
+ * @param string $ua: The user agent of the user to recommend posts for (if blank, this will be found)
  * @param bool $outputWidgetHtml: Indicates if we should output the html once it is rendered
- * @param string $widgetTitle: Used in rendering the widget 
+ * @param string $widgetTitle: The title of the widget 
  * @param string $post_style: Used in rendering the widget
  * @param string $postimage_style: Used in rendering the widget
  * @param string $posttitle_style: Used in rendering the widget
@@ -189,12 +191,12 @@ function kp_registerSettings(){
  * @param string $after_widget: Used in rendering the widget
  * @param string $before_title: Used in rendering the widget
  * @param string $after_title: Used in rendering the widget
- * @param string $alignment: Used in rendering the widget
- * @param string $show_featuredimage: Used in rendering the widget
- * @param string $show_posttitle: Used in rendering the widget
- * @param string $show_postauthor: Used in rendering the widget
- * @param string $show_postdate: Used in rendering the widget
- * @param string $show_postteaser: Used in rendering the widget
+ * @param string $alignment: Used in rendering the widget - defaults to vertical
+ * @param bool $show_featuredimage: Used in rendering the widget (shows posts' featured image)
+ * @param bool $show_posttitle: Used in rendering the widget (shows posts' title)
+ * @param bool $show_postauthor: Used in rendering the widget (shows posts' author)
+ * @param bool $show_postdate: Used in rendering the widget (shows posts' post date)
+ * @param bool $show_postteaser: Used in rendering the widget (shows posts' teaser, deprecated?)
  * @return array: ("widgetHTML" => the html for the widget, "recommender" => the recommender if it was created)
  **/
 function kp_renderWidget($numPostsToRecommend = -1, $recommendedPosts = array(), $template = "", $ip = "", $ua = "", $outputWidgetHtml = true, $widgetTitle = "", $post_style = "padding-top:10px;padding-bottom:10px;", $postimage_style = "display:inline;", $posttitle_style = "display:inline;", $postauthor_style = "display:inline;", $postdate_style = "display:inline;", $postteaser_style = "display:inline;", $before_widget = "", $after_widget = "", $before_title = "", $after_title = "", $alignment = "", $show_featuredimage = false, $show_posttitle = true, $show_postauthor = true, $show_postdate = true, $show_postteaser = false) {
