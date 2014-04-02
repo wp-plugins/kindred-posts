@@ -8,11 +8,11 @@
  *
  * @return bool: Indicates if they do.
  **/
-function kp_checkPro(){
+function kp_checkPro() {
 	// If you mess with this function, you run the risk of the plugin not working properly.
 	// Additional file(s) are required to have the premium version.
-	global $HavePro;
-	return $HavePro;
+	global $kp_havePro;
+	return $kp_havePro;
 }
 
 /**
@@ -88,6 +88,15 @@ function kp_getUserData(){
 }
 
 /**
+ * Checks if the user is an admin
+ *
+ * @return bool: Indicates whether the user is an admin
+ **/
+function kp_isUserAdmin() {
+	return current_user_can('edit_theme_options') && current_user_can('edit_plugins');
+}
+ 
+/**
  * Checks if the user agent of the user belongs to a bot
  *
  * @param string $ua: The user's user agent
@@ -127,10 +136,17 @@ function kp_isUserVisitValid($ip, $ua){
 	return true;
 }
 
+/**
+ * Displays the settings link under the Plugin title on the Plugin page
+ *
+ * @param array $links: The link actions that currently exist under the title
+ * @param string $file: The index of the plugin
+ * @return array: The updated link actions
+ **/
 function kp_pluginActions($links, $file) {
+	// Check that we are on the plugin pages and create the link for the settings
  	if( $file == "kindred-posts/kindred-posts-index.php" && function_exists("admin_url")) {
 		$settings_link = '<a href="' . admin_url( 'options-general.php?page=kindred-posts' ) . '">' . __('Settings') . '</a>';
-		
 		array_unshift($links, $settings_link); // before other links
 	}
 	
@@ -151,13 +167,6 @@ function kp_prepareGoogleAnalytics($str = ""){
 	return "";
 }
 
-function kp_registerSettingsPage(){
-	add_submenu_page("options-general.php", "Kindred Posts", "Kindred Posts", "edit_plugins", "kindred-posts", "kp_settingsPage"); 
-	
-	// call register settings function
-	add_action("admin_init", "kp_registerSettings");
-}
-
 function kp_registerSettings(){
 	register_setting("kp_settings", "FirstSave");
 	register_setting("kp_settings", "CollectStatistics");
@@ -169,6 +178,13 @@ function kp_registerSettings(){
 	if (kp_checkPro()){
 		kp_prepareProSettings();
 	}
+}
+
+function kp_registerSettingsPage(){
+	add_submenu_page("options-general.php", "Kindred Posts", "Kindred Posts", "edit_plugins", "kindred-posts", "kp_settingsPage"); 
+	
+	// call the registerSettings function
+	add_action("admin_init", "kp_registerSettings");
 }
 
 /**
@@ -203,7 +219,7 @@ function kp_renderWidget($numPostsToRecommend = -1, $recommendedPosts = array(),
 	global $defaultNumPostsToRecommend, $defaultNumClosestUsersToUse, $kp_templates;
 	
 	// Check if we are in test mode and if the user is an admin, if they aren't, don't show the widget
-	if (get_option('AdminTestMode', "false") == "true" && (!current_user_can('edit_theme_options') || !current_user_can('edit_plugins'))) {
+	if (get_option('AdminTestMode', "false") == "true" && !kp_isUserAdmin()) {
 		return array("widgetHtml" => "", "recommender" => null);
 	}
 	
@@ -239,7 +255,7 @@ function kp_renderWidget($numPostsToRecommend = -1, $recommendedPosts = array(),
 		
 		// Start the data for the widget
 		$data = array();
-		$data["isTestMode"] = (get_option('AdminTestMode', "false") == "true" && current_user_can('edit_theme_options') && current_user_can('edit_plugins'));
+		$data["isTestMode"] = (get_option('AdminTestMode', "false") == "true" && kp_isUserAdmin());
 		$data["kp_widget:before_widget"] = $before_widget;
 		$data["kp_widget:after_widget"] = $after_widget;
 		$data["kp_widget:title"] = $widgetTitle;
@@ -309,7 +325,7 @@ function kp_saveVisit($postObject) {
 	}
 	
 	// Check if we are in test mode and if the current user is an admin, don't collect their visit data
-	if (get_option('AdminTestMode', "false") == "true" && current_user_can('edit_theme_options') && current_user_can('edit_plugins')) {
+	if (get_option('AdminTestMode', "false") == "true" && kp_isUserAdmin()) {
 		return;
 	}
 	
@@ -322,5 +338,16 @@ function kp_saveVisit($postObject) {
 	$recommender->saveVisit($wp_query->post->ID);
 
 	return null;
+}
+
+/**
+ * Output the version number for a 5 digit number
+ *
+ * @param int $versionInt: The version to convert, takes the form <major version number><minor version number><3 digits for each bug fix version>
+ * @return string: A string of the form <major>.<minor>.<bug fix version>
+ **/
+function kp_versionNumberToString($versionInt) {
+	$versionStr = (string)$versionInt;
+	return substr($versionStr, 0, 1) . "." . substr($versionStr, 1, 1) . "." . substr($versionStr, 2); 
 }
 ?>

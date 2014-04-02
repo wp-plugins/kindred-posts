@@ -20,8 +20,19 @@ function kp_settingsHead(){
  * @return Html: The form
  **/
 function kp_settingsPage(){
-	global $visitTbl, $wpdb;
+	global $visitTbl, $wpdb, $kp_currentVersion;
 	global $defaultNumPostsToRecommend, $pluginUrl, $premiumVersionUrl, $helpUrl, $supportForumUrl, $maintainerUrl;
+
+	$proUpdateAvailable = false;
+	$headerText = __('Kindred Posts by Ai Spork');
+	if (kp_checkPro()) {
+		$headerText = __('Kindred Posts Premium by Ai Spork');
+		
+		// Set up how we update the Premium version of the plugin
+		$proUpdateAvailable = kp_proUpdateAvailable();
+		$needBasicVersionUpdate = $kp_currentVersion->needBasicUpdate;
+		kp_proCheckUpdate('settings_page');
+	}
 	
 	$CollectStatistics = get_option('CollectStatistics', "true");
 	$AttemptToBlockBotVisits = get_option('AttemptToBlockBotVisits', "true");
@@ -42,28 +53,48 @@ function kp_settingsPage(){
 	}
 	
 	$alert = "";
+	if (isset($_SESSION["kp_alert"])) {
+		$alert = $_SESSION["kp_alert"];
+		unset($_SESSION["kp_alert"]);
+	}
 	
 	// Check if the admin wanted to delete the visit data
 	$Deleted = false;
 	if (isset($_POST['delete']) && $_POST['delete'] == "true"){
 		kp_resetVisitData();
-		$alert = "Visit data has been removed";
+		$alert = __("Visit data has been removed");
 	}
 ?>
 	<div class="wrap">
-	<!--<div id="yoast-icon" style="background: url(<?php echo plugins_url('', __FILE__ )."/../images/icon.png"; ?>) no-repeat;" class="icon32"><br></div>-->
-	<h2><?php _e('Kindred Posts by Ai Spork'); ?></h2>	
+
+	<h2><?php echo $headerText; ?></h2>	
 	
 	<?php 
 	if ($alert != "") {
 	?>
 	<div id="setting-error-settings_updated" class="updated settings-error">
 		<p>
-			<strong><?php _e($alert); ?></strong>
+			<strong><?php echo $alert; ?></strong>
 		</p>
 	</div>	
 	<?php 
-	} 
+	} else if ($needBasicVersionUpdate) {
+	?>
+	<div id="setting-error-settings_updated" class="updated settings-error">
+		<p>
+			<strong><?php _e('You are running a version of Kindred Posts that may be out-of-date. <a href="plugins.php">Click here to visit the plugin page and update now</a>'); ?></strong>
+		</p>
+	</div>		
+	<?php
+	} else if ($proUpdateAvailable) {
+	?>
+	<div id="setting-error-settings_updated" class="updated settings-error">
+		<p>
+			<strong><?php kp_proOutputVersionInformation(); ?></strong>
+		</p>
+	</div>		
+	<?php
+	}
 	?>	
 	
 	<p>
@@ -111,6 +142,11 @@ function kp_settingsPage(){
 	// Start User Visit Data box
 	kp_userVisitBox();
 	// End User Visit Data box 
+	
+	// Determine if they have the latest version of Kindred Posts Premium
+	if (kp_checkPro()) {
+		kp_proOutputVersionInformation();
+	}
 	?>
 	</div>
 	<?php // End left-side container  ?>
@@ -438,7 +474,7 @@ function kp_userVisitBox() {
 		if ($last_visit) {
 			echo date("F j, Y, g:i a", strtotime($last_visit)); 
 		} else {
-			echo "No visits yet";
+			echo __("No visits yet");
 		}
 		?>
 	</p>

@@ -82,7 +82,7 @@ class kp_widget extends WP_Widget {
 		global $defaultNumPostsToRecommend, $kp_templates;
 		
 		// Check if we are in test mode and if the user is an admin, if they aren't, don't show the widget
-		if (get_option('AdminTestMode', "false") == "true" && (!current_user_can('edit_theme_options') || !current_user_can('edit_plugins'))) {
+		if (get_option('AdminTestMode', "false") == "true" && !kp_isUserAdmin()) {
 			return array("widgetHtml" => "", "recommender" => null);
 		}
 		
@@ -142,6 +142,7 @@ class kp_widget extends WP_Widget {
 		$widgetTitle = apply_filters("widget_title", $instance["title"]);
 		
 		// Start data for this specific widget
+		$alignment = $defaultAlignment;
 		$post_style = "padding-top:10px;padding-bottom:10px;";
 		$postimage_style = "display:inline;";
 		$posttitle_style = "display:inline;";
@@ -152,12 +153,6 @@ class kp_widget extends WP_Widget {
 		if (kp_checkPro()){
 			$arr = kp_getProWidgetOptions($instance);
 			extract($arr);
-		}
-		
-		if (!isset($instance["alignment"])){
-			$alignment = $defaultAlignment;
-		} else {
-			$alignment = $instance["alignment"];
 		}
 		
 		return kp_renderWidget($numPostsToRecommend, $recommendedPosts, $template, $ip, $ua, $outputWidgetHtml, $widgetTitle, $post_style, $postimage_style, $posttitle_style, $postauthor_style, $postdate_style, $postteaser_style, $args["before_widget"], $args["after_widget"], $args["before_title"], $args["after_title"], $alignment, $instance["featureimage"], $instance["posttitle"], $instance["postauthor"], $instance["postdate"], $instance["postteaser"]);

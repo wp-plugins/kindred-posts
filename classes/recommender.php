@@ -129,7 +129,7 @@ class kp_recommender {
 		}
 		
 		// Determine if we are test mode and an admin, if so, display the test mode data
-		$isTestMode = (get_option('AdminTestMode', "false") == "true" && current_user_can('edit_theme_options') && current_user_can('edit_plugins'));
+		$isTestMode = (get_option('AdminTestMode', "false") == "true" && kp_isUserAdmin());
 		if ($isTestMode) {
 			$testModeValue = "1";		
 		} else {
