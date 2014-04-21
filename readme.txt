@@ -3,7 +3,7 @@ Contributors: AiSpork
 Donate link: http://AiSpork.com/
 Tags: data mining, artificial intelligence, recommendations, similar posts, related posts, relevant content, content curation, user engagement
 Requires at least: 2.7.0
-Tested up to: 3.8
+Tested up to: 3.9
 Stable tag: 1.2.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
