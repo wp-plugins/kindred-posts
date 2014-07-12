@@ -3,18 +3,18 @@ Contributors: AiSpork
 Donate link: http://AiSpork.com/
 Tags: data mining, artificial intelligence, recommendations, similar posts, related posts, relevant content, content curation, user engagement
 Requires at least: 2.7.0
-Tested up to: 3.9
-Stable tag: 1.2.3
+Tested up to: 3.9.1
+Stable tag: 1.2.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Automatically recommend your posts to your site visitors
+Automatically recommend posts to your site visitors
 
 == Description ==
 
 Kindred Posts learns how your website visitors are currently accessing your site and uses artificial intelligence to recommend posts that your visitors may find the most interesting. 
 
-This easy-to-use plugin requires almost no setup so all you have to do is simply drag-and-drop a widget into your theme to start collecting statistics and recommending posts. You can also tweak how the widget looks and feels by modifying the Widget or the PHP code itself. 
+This easy-to-use plugin requires almost no setup so all you have to do is drag-and-drop a widget into your theme to start collecting statistics and recommending posts. You can also tweak how the widget looks and feels by modifying the Widget or the PHP code itself. 
 
 = Kindred Posts Premium =
 We will soon offer a premium version of this plugin with additional features:
@@ -59,6 +59,8 @@ Please visit [our site](http://AiSpork.com/kindred-posts-premium "Kindred Posts 
 
 == Changelog ==
 
+= 1.2.4 =
+* Updating tests.
 = 1.2.3 =
 * Restructuring the template engine and made minor updates to other parts of the plugin.
 = 1.2.2 =
