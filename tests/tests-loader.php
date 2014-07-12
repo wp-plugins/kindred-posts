@@ -12,10 +12,15 @@ include_once('classes\widget.php');
 
 $testPostID = 1; // A sample post to use for testing
 $numTestsToInsert = -1; // Set to <= 0 if you want to insert data
-$testRenderer = true;
-$testRecommendedPost = false;
-$testRecommender = false;
-$testWidget = false;
+$testRenderer = false || (isset($_GET["testAll"]) && ($_GET["testAll"] == "true"));
+$testRecommendedPost = false || (isset($_GET["testAll"]) && ($_GET["testAll"] == "true"));
+$testRecommender = false || (isset($_GET["testAll"]) && ($_GET["testAll"] == "true"));
+$testWidget = false || (isset($_GET["testAll"]) && ($_GET["testAll"] == "true"));
+
+$testRenderer = $testRenderer || (isset($_GET["testRenderer"]) && ($_GET["testRenderer"] == "true"));
+$testRecommendedPost = $testRecommendedPost || (isset($_GET["testRecommendedPost"]) && ($_GET["testRecommendedPost"] == "true"));
+$testRecommender = $testRecommender || (isset($_GET["testRecommender"]) && ($_GET["testRecommender"] == "true"));
+$testWidget = $testWidget || (isset($_GET["testWidget"]) && ($_GET["testWidget"] == "true"));
 
 if ($numTestsToInsert > 0) {
 	echo "<div>Inserting $numTestsToInsert Test Post(s)...</div>";

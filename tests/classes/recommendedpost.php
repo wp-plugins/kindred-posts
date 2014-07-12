@@ -77,18 +77,19 @@ class kp_test_recommendedPost {
 		// Construct the recommendedPost object (rpObj) then create a template that will be filled in by the rpObj from the post's details
 		// use that same template and known post properties to see how they compare
 		try {
-			$template = "{author_user_nicename} {author_user_url} {post_date} {post_url} {post_excerpt} {post_title} {has_thumbnail} {post_thumbnail} {ga_posttitle} {ga_author}";
+			$template = "{author_user_nicename} {author_user_url} {post_date} {post_date_nice} {post_url} {post_excerpt} {post_title} {has_thumbnail} {post_thumbnail} {ga_posttitle} {ga_author}";
 			$this->rpObj = new kp_recommendedPost($this->post);
 			
 			$data = array();
 			$data["author_user_nicename"] = strtoupper(get_the_author_meta('user_nicename', $this->post->post_author));
-			$data["author_user_url"] = get_the_author_meta('user_url', $this->post->post_author);
-			$data["post_date"] = strtoupper(date("F j, Y", strtotime($this->post->post_date)));
+			$data["author_user_url"] = get_author_posts_url($this->post->post_author);
+			$data["post_date"] = strtotime($this->post->post_date);
+			$data["post_date_nice"] = strtoupper(date("F j, Y", strtotime($this->post->post_date)));
 			$data["post_url"] = get_permalink($this->post->ID);
 			$data["post_excerpt"] = $this->post->post_excerpt;
 			$data["post_title"] = $this->post->post_title;
-			$data["has_thumbnail"] = has_post_thumbnail($this->post->ID);
-			$data["post_thumbnail"] = get_the_post_thumbnail( $this->post->ID, array(150, 150) );
+			$data["has_thumbnail"] = (int)has_post_thumbnail($this->post->ID);
+			$data["post_thumbnail"] = get_the_post_thumbnail( $this->post->ID, array(150, 150));
 			$data["ga_posttitle"] = kp_prepareGoogleAnalytics($this->post->post_title);
 			$data["ga_author"] = kp_prepareGoogleAnalytics($data["author_user_nicename"]);			
 			

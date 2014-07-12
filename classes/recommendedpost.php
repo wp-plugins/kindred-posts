@@ -57,14 +57,8 @@ class kp_recommendedPost {
 		if ($template == "" && isset($kp_templates["kp_recommendedPost"])){
 			$template = $kp_templates["kp_recommendedPost"];
 		}
-		$data = $this->getPostTemplateData($data);
-		/*
-		echo "\n\n\n\n5\n\n\n\n";
-		echo $template;
 		
-		print_r($data);
-		echo kp_renderer::render($template, $data);
-		*/
+		$data = $this->getPostTemplateData($data);
 		return kp_renderer::render($template, $data);
 	}
 } // End kp_recommendedPost class

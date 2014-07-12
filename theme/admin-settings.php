@@ -313,7 +313,7 @@ function kp_feedbackBox() {
 	}
 	
 	function submitFeedback() {
-		if (confirm("<?php _e("Your privacy is important to us. Ai Spork does not and will not give out any of the information you have provided here. Please press OK to submit this feedback."); ?>")) { 
+		if (confirm("<?php _e("Your privacy is important to us. Ai Spork does not and will never give out any of the information you have provided here. Please press OK to submit this feedback."); ?>")) { 
 			jQuery("#confirm").val("true");
 			postFeedback();
 		}

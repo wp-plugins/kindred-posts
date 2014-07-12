@@ -71,7 +71,7 @@ class kp_test_widget {
 	 **/
 	public function test3() {
 		global $defaultNumPostsToRecommend;
-		
+
 		try {
 			// Set up test data in database
 			$testData = new kp_testData();
@@ -86,21 +86,22 @@ class kp_test_widget {
 			$expectedNumPosts = 4;
 			$widgetInstance = array("numposts" => 4);
 			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent);
-			extract($widgetResults);
+			$recommender = $widgetResults["recommender"];
 			$test = (count($recommender->posts) == $expectedNumPosts);
 
 			// Test that a string falls back to the default
 			$expectedNumPosts = $defaultNumPostsToRecommend;
 			$widgetInstance = array("numposts" => "asd4");
 			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent);
-			extract($widgetResults);
+			$recommender = $widgetResults["recommender"];
 			$test = ($test && (count($recommender->posts) == $expectedNumPosts));
-
-			// Test that the user receives only the number of posts available
-			$expectedNumPosts = count($user2->visitedPostIDs);
+			
+			// Test a close user. User 1 has visited the same post as User 2. User 2 has explored the website more than User 1 so display all the other posts that User 2 has seen.
+			$expectedNumPosts = count($user2->visitedPostIDs)-1;
 			$widgetInstance = array("numposts" => (wp_count_posts('post', 'readable')->publish + 50));
+			// Recommend for User 1 
 			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent);
-			extract($widgetResults);
+			$recommender = $widgetResults["recommender"];
 			$test = ($test && (count($recommender->posts) == $expectedNumPosts));			
 		
 			$user1->deleteVisitData();
