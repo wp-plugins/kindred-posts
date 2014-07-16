@@ -76,6 +76,8 @@ Please visit [our site](http://AiSpork.com/kindred-posts-premium "Kindred Posts 
 
 == Upgrade Notice ==
 
+= 1.2.4 =
+* No database changes.
 = 1.2.3 =
 * If you have modified themes/templates.php, please back it up now. You will need to update custom-templates.php with those changes once you have updated your plugin.
 = 1.2.2 =
