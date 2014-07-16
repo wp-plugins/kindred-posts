@@ -3,7 +3,7 @@
 Plugin Name: Kindred Posts
 Plugin URI: http://aispork.com/kindred-posts
 Description: Automatically recommend your posts to your site visitors
-Version: 1.2.3
+Version: 1.2.4
 Author: Ai Spork LLC
 Author URI: http://aispork.com
 License: GPLv2 or later
