@@ -7,7 +7,7 @@ global $wpdb, $visitTbl, $postTbl, $defaultNumClosestUsersToUse, $maxPastUpdateD
 global $showTitle, $showAuthor, $showDate, $showExcerpt, $showFeaturedImage, $firstPost, $defaultOrientation, $defaultAlignment;
 global $kp_code_version, $kp_db_version;
 
-$kp_code_version = "1.2.2"; // The version of code
+$kp_code_version = "1.2.5"; // The version of code
 $kp_db_version = "1.1"; // The database version
 
 $visitTbl = $wpdb->prefix . "kindred_posts_visits";
@@ -16,6 +16,7 @@ $defaultNumClosestUsersToUse = 5; 	// Select the x number of closest users to re
 						// More will result in more accurate predictions but is much less efficient
 $maxPastUpdateDate = 365; 	// The number of days in the past to look for visits
 $defaultNumPostsToRecommend = 3;	// The number of posts to recommend to the user
+$trackUserAgent = true; // Track the User Agent when tracking visits
 
 $numTestModeFakeUsers = 10; // The number of fake users to insert into the database when switching to test mode
 $numTestModeFakeVisits = 10; // The number of fake visits that each user makes

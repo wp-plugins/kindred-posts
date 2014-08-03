@@ -64,6 +64,21 @@ function kp_determineIP() {
 }
 
 /**
+ * Retrieve a list of recommended posts for the user agent and ip specified
+ *
+ * @param int $numPostsToRecommend: The number of posts to recommend ($defaultNumPostsToRecommend recommendations will be generated if $recommendedPosts is empty)
+ * @param string $ip: The ip address of the user to recommend posts for (if blank, this will be found)
+ * @param string $ua: The user agent of the user to recommend posts for (if blank, this will be found)
+ * @return Array: An array of kp_recommendedPosts objects
+ *
+ * @since 1.2.5
+ */
+function kp_getRecommendedWP_Posts($numPostsToRecommend = -1, $ip = "", $ua = "") {
+	$recommender = kp_runRecommender($numPostsToRecommend, $ip, $ua);
+	return $recommender->getRecommendedWP_Posts();
+}
+
+/**
  * Get the user's information
  *
  * @return array
@@ -167,6 +182,11 @@ function kp_prepareGoogleAnalytics($str = ""){
 	return "";
 }
 
+/**
+ * Register the settings used in the plugin
+ *
+ * @return void
+ */
 function kp_registerSettings(){
 	register_setting("kp_settings", "FirstSave");
 	register_setting("kp_settings", "CollectStatistics");
@@ -180,7 +200,13 @@ function kp_registerSettings(){
 	}
 }
 
+/**
+ * Register the settings page within the admin section
+ *
+ * @return void
+ */
 function kp_registerSettingsPage(){
+	// Register the settings page in the Admin section
 	add_submenu_page("options-general.php", "Kindred Posts", "Kindred Posts", "edit_plugins", "kindred-posts", "kp_settingsPage"); 
 	
 	// call the registerSettings function
@@ -188,9 +214,9 @@ function kp_registerSettingsPage(){
 }
 
 /**
- * Render a widget using the template in theme\template.php. Using the default parameters renders a functional widget.
+ * Render a widget using the template in theme\template.php if $template is blank. Using the default parameters renders a functional widget.
  *
- * @param int $numPostsToRecommend: The number of posts to recommend (recommendations will be generated if $recommendedPosts is empty)
+ * @param int $numPostsToRecommend: The number of posts to recommend ($defaultNumPostsToRecommend recommendations will be generated if $recommendedPosts is empty)
  * @param array $recommendedPosts: The posts to recommend (if empty, recommendations will be generated)
  * @param string $template: The template to use to render the widget (if blank, will be generated using theme\template.php)
  * @param string $ip: The ip address of the user to recommend posts for (if blank, this will be found)
@@ -216,7 +242,7 @@ function kp_registerSettingsPage(){
  * @return array: ("widgetHTML" => the html for the widget, "recommender" => the recommender if it was created)
  **/
 function kp_renderWidget($numPostsToRecommend = -1, $recommendedPosts = array(), $template = "", $ip = "", $ua = "", $outputWidgetHtml = true, $widgetTitle = "", $post_style = "padding-top:10px;padding-bottom:10px;", $postimage_style = "display:inline;", $posttitle_style = "display:inline;", $postauthor_style = "display:inline;", $postdate_style = "display:inline;", $postteaser_style = "display:inline;", $before_widget = "", $after_widget = "", $before_title = "", $after_title = "", $alignment = "", $show_featuredimage = false, $show_posttitle = true, $show_postauthor = true, $show_postdate = true, $show_postteaser = false) {
-	global $defaultNumPostsToRecommend, $defaultNumClosestUsersToUse, $kp_templates;
+	global $kp_templates;
 	
 	// Check if we are in test mode and if the user is an admin, if they aren't, don't show the widget
 	if (get_option('AdminTestMode', "false") == "true" && !kp_isUserAdmin()) {
@@ -228,24 +254,12 @@ function kp_renderWidget($numPostsToRecommend = -1, $recommendedPosts = array(),
 		$template = $kp_templates["kp_widget"];
 	}
 	
-	// Check if recommendedPosts have been passed, if so, default to those  or else recommend some
+	// Check if recommendedPosts have been passed, if so, default to those or else recommend some
+	$recommender = null;
 	if (count($recommendedPosts) == 0) {
-		// Check if $ip and $ua have been passed, if not, generate them
-		if ($ip == "" && $ua == ""){
-			$arr = kp_getUserData();
-			extract($arr);
-		}
-		
-		// Check if the user has set the number of posts to recommend
-		if ($numPostsToRecommend <= 0) {
-			$numPostsToRecommend = $defaultNumPostsToRecommend;
-		}		
-		
-		// Run the recommender
-		$recommender = new kp_recommender($ip, $ua);
-		$recommender->run($numPostsToRecommend, $defaultNumClosestUsersToUse);
+		$recommender = kp_runRecommender($numPostsToRecommend, $ip, $ua);
 		$recommendedPosts = $recommender->posts;
-	}	
+	}
 	
 	$widgetHtml = "";
 	
@@ -255,7 +269,7 @@ function kp_renderWidget($numPostsToRecommend = -1, $recommendedPosts = array(),
 		
 		// Start the data for the widget
 		$data = array();
-		$data["isTestMode"] = (get_option('AdminTestMode', "false") == "true" && kp_isUserAdmin());
+		$data["isTestMode"] = (get_option("AdminTestMode", "false") == "true" && kp_isUserAdmin());
 		$data["kp_widget:before_widget"] = $before_widget;
 		$data["kp_widget:after_widget"] = $after_widget;
 		$data["kp_widget:title"] = $widgetTitle;
@@ -275,12 +289,10 @@ function kp_renderWidget($numPostsToRecommend = -1, $recommendedPosts = array(),
 		
 		if (!isset($alignment) || $alignment == ""){
 			$alignment = $defaultAlignment;
-		} else {
-			$alignment = $alignment;
 		}
 		
 		$data["kp_widget:alignment"] = $alignment;
-		$data["kp_widget:orientation-horizontal"] = true;//($instance["orientation"] == "horizontal");
+		$data["kp_widget:orientation-horizontal"] = true;//($instance["orientation"] == "horizontal"); // Need to consider switching this to ($alignment == "horizontal");
 		$data["kp_widget:featureimage"] = $show_featuredimage;
 		$data["kp_widget:posttitle"] = $show_posttitle;
 		$data["kp_widget:postauthor"] = $show_postauthor;
@@ -299,6 +311,38 @@ function kp_renderWidget($numPostsToRecommend = -1, $recommendedPosts = array(),
 	}
 	
 	return array("widgetHtml" => $widgetHtml, "recommender" => $recommender);
+}
+
+/**
+ * Construct a recommender object and list of recommended posts for the user agent and ip specified
+ *
+ * @param int $numPostsToRecommend: The number of posts to recommend ($defaultNumPostsToRecommend recommendations will be generated if $recommendedPosts is empty)
+ * @param array $recommendedPosts: The posts to recommend (if empty, recommendations will be generated)
+ * @param string $ip: The ip address of the user to recommend posts for (if blank, this will be found)
+ * @param string $ua: The user agent of the user to recommend posts for (if blank, this will be found)
+ * @return kp_recommender: object with posts to recommend (to use, call $recommender->posts)
+ *
+ * @since 1.2.5
+ */
+function kp_runRecommender($numPostsToRecommend = -1, $ip = "", $ua = "") {
+	global $defaultNumPostsToRecommend, $defaultNumClosestUsersToUse; 
+	
+	// Check if $ip and $ua have been passed, if not, generate them
+	if ($ip == "" && $ua == ""){
+		$arr = kp_getUserData();
+		extract($arr);
+	}
+	
+	// Check if the user has set the number of posts to recommend
+	if ($numPostsToRecommend <= 0) {
+		$numPostsToRecommend = $defaultNumPostsToRecommend;
+	}		
+	
+	// Run the recommender
+	$recommender = new kp_recommender($ip, $ua);
+	$recommender->run($numPostsToRecommend, $defaultNumClosestUsersToUse);
+	
+	return $recommender;
 }
 
 /**

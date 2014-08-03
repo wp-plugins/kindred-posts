@@ -165,8 +165,8 @@ function kp_settingsPage(){
 	// End Feedback Box
  
 	// Start Premium Version Box 
-	kp_premiumVersionBox();
-	// End Premium Version Box 
+	// kp_premiumVersionBox();
+	// End Premium Version Box
 	// End Right Column 
 	?>
 	</div>
@@ -401,8 +401,8 @@ function kp_settingsBox() {
 	<hr />
 	<p>
 		<input type="checkbox" name="AdminTestMode" value="true" id="AdminTestMode"<?php if ($AdminTestMode == "true") { ?> checked="checked"<?php } ?> />
-		<label for="AdminTestMode"><?php _e('In Test Mode - '); ?><a id="SeeMoreLink" href="#" onclick="document.getElementById('TestModeDescription').style.display = 'inline'; this.style.display = 'none'; return false;"><?php _e('Show More'); ?></a>
-		<span id="TestModeDescription" style="display:none;"><?php _e('Test mode allows administrators to see how the plugin will behave for website visitors using fake visit data. While in test mode, the widget will only appear to administrators that can edit plugins and themes. NOTE: Even within test mode, data can still be collected about website visitors.'); ?> <a href="#" onclick="document.getElementById('TestModeDescription').style.display = 'none'; document.getElementById('SeeMoreLink').style.display = 'inline'; return false;"><?php _e('Show Less'); ?></a></span>
+		<label for="AdminTestMode"><?php _e('In Test Mode - '); ?><a id="SeeMoreLink" href="#" onclick="document.getElementById('TestModeDescription').style.display = 'inline'; this.style.display = 'none'; return false;"><?php _e('What is this?'); ?></a>
+		<span id="TestModeDescription" style="display:none;"><?php _e('Test mode allows administrators to see how the plugin will behave for website visitors using fake visit data. While in test mode, the widget will only appear to administrators that can edit plugins and themes. NOTE: Even within test mode, data can still be collected about website visitors.'); ?> <a href="#" onclick="document.getElementById('TestModeDescription').style.display = 'none'; document.getElementById('SeeMoreLink').style.display = 'inline'; return false;"><?php _e('Hide'); ?></a></span>
 		</label>
 		<br />
 	</p>	

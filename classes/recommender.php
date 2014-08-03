@@ -5,7 +5,7 @@
 class kp_recommender {
 	public $ipAddress = ""; // The IP Address of the user making the request
 	public $userAgent = ""; // The user's user agent
-	public $posts = array(); // An array of posts that were recommended for this IP Address
+	public $posts = array(); // An array of posts that were recommended for this user
 	public $template = ""; 	// A template of how the posts should be rendered
 							// In order to render the posts, the template must contain {Posts}
 	
@@ -58,12 +58,28 @@ class kp_recommender {
 	}
 	
 	/**
+	 * Return an array of recommended posts as WP_Posts
+	 *
+	 * @return Array: An array of WP_Posts
+	 *
+	 * @since 1.2.5
+	 */
+	function getRecommendedWP_Posts() {
+		$wpPosts = array();
+		foreach ($this->posts as $rpPost) {
+			$wpPosts[] = $rpPost->post;
+		}
+		
+		return $wpPosts;
+	}
+	
+	/**
 	 * Check if $this->posts contains $postID
 	 *
 	 * @param int $postID: The post we are interested in
 	 * @return bool
 	 **/
-	function isPostRecommended($postID){
+	function isPostRecommended($postID) {
 		foreach ($this->posts as $post) {
 			if ($post->post_id == $postID) {
 				return true;
@@ -116,7 +132,7 @@ class kp_recommender {
 	 **/
 	public function run($numPostsToRecommend = 5, $numClosestUsersToUse = -1){
 		// Get the unique posts and counts for each user
-		global $visitTbl, $wpdb, $defaultNumClosestUsersToUse, $maxPastUpdateDate;
+		global $visitTbl, $wpdb, $defaultNumClosestUsersToUse, $maxPastUpdateDate, $trackUserAgent;
 		
 		// Check if the user is currently on a post, if not, set the current post to -1
 		if (!isset($curr_post_id)){
@@ -140,24 +156,45 @@ class kp_recommender {
 		$this->posts = array();
 		
 		// Get the user's visit data
-		$user = $wpdb->get_row($wpdb->prepare("SELECT * FROM $visitTbl WHERE IP = %s", $this->ipAddress), OBJECT);
+		if ($trackUserAgent) {
+			$sql = "SELECT * FROM $visitTbl WHERE IP = %s AND UserAgent = %s";
+			$args = array($this->ipAddress, $this->userAgent);
+		} else {
+			$sql = "SELECT * FROM $visitTbl WHERE IP = %s";
+			$args = array($this->ipAddress);
+		}
+		
+		$user = $wpdb->get_row($wpdb->prepare($sql, $args), OBJECT);
 		$userVisits = unserialize($user->Visits);		
 
 		// Set up the closest number of users
 		$closestUsers = array();
 		
-		$sql = "
-			SELECT * 
-			FROM $visitTbl 
-			WHERE 
-				TestData = '" . $testModeValue . "' AND 
-				IP != %s AND (
-					UpdateDate > ADDDATE(NOW(), INTERVAL %d DAY) OR CreateDate > ADDDATE(NOW(), INTERVAL %d DAY)
-				)";						
+		if ($trackUserAgent) {
+			$sql = "
+				SELECT * 
+				FROM $visitTbl 
+				WHERE 
+					TestData = '" . $testModeValue . "' AND 
+					(IP != %s OR UserAgent != %s) AND
+					(UpdateDate > ADDDATE(NOW(), INTERVAL %d DAY) OR CreateDate > ADDDATE(NOW(), INTERVAL %d DAY))";						
+			
+			// Get the rest of the users within the past Max Update Date (ignore test mode data)
+			$args = array($this->ipAddress, $this->userAgent, -1*$maxPastUpdateDate, -1*$maxPastUpdateDate);
+		} else {
+			$sql = "
+				SELECT * 
+				FROM $visitTbl 
+				WHERE 
+					TestData = '" . $testModeValue . "' AND 
+					(IP != %s) AND
+					(UpdateDate > ADDDATE(NOW(), INTERVAL %d DAY) OR CreateDate > ADDDATE(NOW(), INTERVAL %d DAY))";						
+			
+			// Get the rest of the users within the past Max Update Date (ignore test mode data)
+			$args = array($this->ipAddress, -1*$maxPastUpdateDate, -1*$maxPastUpdateDate);
+		}
 		
-		// Get the rest of the users within the past Max Update Date (ignore test mode data)
-		$otherUsers = $wpdb->get_results($wpdb->prepare($sql, array($this->ipAddress, -1*$maxPastUpdateDate, -1*$maxPastUpdateDate)), OBJECT);		
-		
+		$otherUsers = $wpdb->get_results($wpdb->prepare($sql, $args), OBJECT);
 		
 		foreach ($otherUsers as $otherUser) {
 			// Get the distance between the user and the other users
@@ -255,14 +292,18 @@ class kp_recommender {
 	 * @return null
 	 **/
 	public function saveVisit($postID) {
-		global $visitTbl, $firstPost, $wpdb;
+		global $visitTbl, $firstPost, $wpdb, $trackUserAgent;
 		
 		// Check if user is bot or if they have pro version option
 		if (!kp_isUserVisitValid($this->ipAddress, $this->userAgent)) {
 			return;
 		}
 
-		$row = $wpdb->get_row($wpdb->prepare("SELECT * FROM $visitTbl WHERE IP=%s", $this->ipAddress), OBJECT);
+		if ($trackUserAgent) {
+			$row = $wpdb->get_row($wpdb->prepare("SELECT * FROM $visitTbl WHERE IP=%s AND UserAgent=%s", $this->ipAddress, $this->userAgent), OBJECT, 0);
+		} else {
+			$row = $wpdb->get_row($wpdb->prepare("SELECT * FROM $visitTbl WHERE IP=%s", $this->ipAddress), OBJECT, 0);
+		}
 		
 		// Get the row_id for this particular user
 		if (isset($row->VisitID)) {
@@ -277,7 +318,11 @@ class kp_recommender {
 			}
 			
 			// Update the row
-			$wpdb->query($wpdb->prepare("UPDATE $visitTbl SET Visits=%s, UpdateDate=NOW(), DataSent='0' WHERE IP=%s", serialize($Visits), $this->ipAddress));
+			if ($trackUserAgent) {
+				$wpdb->query($wpdb->prepare("UPDATE $visitTbl SET Visits=%s, UpdateDate=NOW(), DataSent='0' WHERE IP=%s AND UserAgent=%s", serialize($Visits), $this->ipAddress, $this->userAgent));
+			} else {
+				$wpdb->query($wpdb->prepare("UPDATE $visitTbl SET Visits=%s, UpdateDate=NOW(), DataSent='0' WHERE IP=%s", serialize($Visits), $this->ipAddress));
+			}
 			
 		} else {
 			$Visits = array();

@@ -109,7 +109,7 @@ if ($kp_templates["kp_widget"] == '') {
 		{/if kp_widget:title_exists}
 		
 		{kp_recommender} {comment}Outputs the kp_recommender object template here{/comment}
-		{if isTestMode}<p>Kindred Posts is in Test Mode</p>{/if isTestMode}
+		{if isTestMode}<p><a href="./wp-admin/options-general.php?page=kindred-posts">Kindred Posts</a> is in Test Mode</p>{/if isTestMode}
 		{kp_widget:after_widget}
 	';
 }

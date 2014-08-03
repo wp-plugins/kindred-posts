@@ -87,14 +87,18 @@ class kp_test_widget {
 			$widgetInstance = array("numposts" => 4);
 			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent);
 			$recommender = $widgetResults["recommender"];
-			$test = (count($recommender->posts) == $expectedNumPosts);
+			$test3a = (count($recommender->posts) == $expectedNumPosts);
+			$testObj = new kp_test("Test 3a", $test3a, "kp_widget passed standard Number of Posts test", "kp_widget failed standard Number of Posts test");
+			$testObj->render();
 
 			// Test that a string falls back to the default
 			$expectedNumPosts = $defaultNumPostsToRecommend;
 			$widgetInstance = array("numposts" => "asd4");
 			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent);
 			$recommender = $widgetResults["recommender"];
-			$test = ($test && (count($recommender->posts) == $expectedNumPosts));
+			$test3b = (count($recommender->posts) == $expectedNumPosts);
+			$testObj = new kp_test("Test 3b", $test3b, "kp_widget passed fallback Number of Posts test", "kp_widget failed fallback Number of Posts test");
+			$testObj->render();
 			
 			// Test a close user. User 1 has visited the same post as User 2. User 2 has explored the website more than User 1 so display all the other posts that User 2 has seen.
 			$expectedNumPosts = count($user2->visitedPostIDs)-1;
@@ -102,8 +106,12 @@ class kp_test_widget {
 			// Recommend for User 1 
 			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent);
 			$recommender = $widgetResults["recommender"];
-			$test = ($test && (count($recommender->posts) == $expectedNumPosts));			
+			$test3c = (count($recommender->posts) == $expectedNumPosts);
+			$testObj = new kp_test("Test 3c", $test3b, "kp_widget passed cloning Number of Posts test", "kp_widget failed cloning Number of Posts test");
+			$testObj->render();			
 		
+			$test = $test3a && $test3b && test3c;
+			
 			$user1->deleteVisitData();
 			$user2->deleteVisitData();
 			$testData->deleteAllTestPosts();

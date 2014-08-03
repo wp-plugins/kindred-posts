@@ -12,6 +12,7 @@ class kp_test_recommender {
 		$this->test5(); // (1 user)
 		$this->test6(); // (4 users, 1 user closely related to 1 other user)
 		$this->test7(); // (5 users, 1 user closely related to 2 other users)
+		$this->test8(); // Test kp_runRecommender returns the same results as the the recommender
 	}
 	
 	/**
@@ -223,6 +224,50 @@ class kp_test_recommender {
 		$testObj->render();	
 		
 		kp_resetVisitData();
-	}	
+	}
+	
+	/**
+	 * Test kp_runRecommender returns the same results as the the recommender
+	 **/
+	public function test8() {
+		kp_resetVisitData();
+		
+		try {
+			// Set up test data in database
+			$testData = new kp_testData();
+			$testPostIDs = $testData->insertTestPosts(10);
+			$tK = array_keys($testPostIDs);
+			
+			// User Group #1
+			$user1 = new kp_testUser(array($tK[0], $tK[1], $tK[2]), array()); 
+			$user2 = new kp_testUser(array($tK[0], $tK[1], $tK[2], $tK[3]), array()); 
+			
+			// User Group #2
+			$user3 = new kp_testUser(array($tK[4], $tK[5], $tK[6]), array()); 		
+			$user4 = new kp_testUser(array($tK[4], $tK[5], $tK[6]), array());
+			
+			// Get the recommendation from the recommender
+			$user1->recommender->run(1, 1);
+			
+			// Get the recommendation from the lib function
+			$posts = kp_getRecommendedWP_Posts(1, $user1->ipAddress, $user1->userAgent);
+
+			$test = ($user1->recommender->posts[0]->post_id == $posts[0]->post_id);
+			
+			$user1->deleteVisitData();
+			$user2->deleteVisitData();
+			$user3->deleteVisitData();
+			$user4->deleteVisitData();			
+			$testData->deleteAllTestPosts();
+			
+		} catch (Exception $e) {
+			$test = false;
+		}
+		
+		$testObj = new kp_test("Test 8", $test, "results from recommendation function match results from recommendation engine", "results from recommendation function do not match results from recommendation engine");
+		$testObj->render();
+		
+		kp_resetVisitData();	
+	}
 } // End kp_test_recommender
 ?>

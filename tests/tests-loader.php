@@ -8,6 +8,8 @@ include_once('classes\recommendedpost.php');
 include_once('classes\recommender.php');
 include_once('classes\renderer.php');
 include_once('classes\test.php');
+include_once('classes\testData.php');
+include_once('classes\testUser.php');
 include_once('classes\widget.php');
 
 $testPostID = 1; // A sample post to use for testing

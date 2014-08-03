@@ -83,11 +83,11 @@ function kp_widgetSettings($widgetObj, $instance) {
 	</p>	
 	
 	<?php // Display Orientation Radio Buttons ?>
-	<? _e('List Posts'); ?> 
+	<?php _e('List Posts'); ?> 
 	<table>
 		<tr>
 			<td>
-				<input type="radio" name="<?php echo $widgetObj->get_field_name( 'orientation' ); ?>" id="<?php echo $widgetObj->get_field_id( 'orientation' ); ?>" value="horizontal"<?php checked( $orientation, "horizontal" ); ?> /> <?php _e('Horizontally'); ?>
+				<input type="radio" name="<?php echo $widgetObj->get_field_name( 'orientation' ); ?>" id="<?php echo $widgetObj->get_field_id( 'orientation' ); ?>" value="horizontal"<?php checked( $orientation, "horizontal" ); ?> /> <?php _e('Horizontally'); ?>&nbsp;
 			</td>
 			<td align="center">
 				<img src="<?php echo plugins_url('', __FILE__ ).'/../images/horz.png'; ?>" />
@@ -95,7 +95,7 @@ function kp_widgetSettings($widgetObj, $instance) {
 		</tr>
 		<tr>
 			<td>
-	<input type="radio" name="<?php echo $widgetObj->get_field_name( 'orientation' ); ?>" id="<?php echo $widgetObj->get_field_id( 'orientation' ); ?>" value="vertical"<?php checked( $orientation, "vertical" ); ?> /> <?php _e('Vertically'); ?> 
+				<input type="radio" name="<?php echo $widgetObj->get_field_name( 'orientation' ); ?>" id="<?php echo $widgetObj->get_field_id( 'orientation' ); ?>" value="vertical"<?php checked( $orientation, "vertical" ); ?> /> <?php _e('Vertically'); ?>&nbsp;
 			</td>
 			<td align="center">
 				<img src="<?php echo plugins_url('', __FILE__ ).'/../images/vert.png'; ?>" />
