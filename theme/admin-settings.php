@@ -184,12 +184,12 @@ function kp_advancedSettingsBox() {
 		
 		<div style="display:inline;">
 			 &nbsp; 
-			 <a href="#" id="OptionalInformationShowLink" onclick="this.style.display = 'none'; document.getElementById('OptionalInformationShow').style.display = 'none'; document.getElementById('OptionalInformationHide').style.display = 'block'; document.getElementById('OptionalInformationHideLink').style.display = 'inline'; return false;" style="display:inline;"><?php _e("What is this?"); ?></a>
+			 <a href="#" id="OptionalInformationShowLink" onclick="this.style.display = 'none'; document.getElementById('OptionalInformationShowLink').style.display = 'none'; document.getElementById('OptionalInformationHideDiv').style.display = 'block'; document.getElementById('OptionalInformationHideLink').style.display = 'inline'; return false;" style="display:inline;"><?php _e("What is this?"); ?></a>
 			 
-			 <a href="#" id="OptionalInformationHideLink" onclick="this.style.display= 'none'; document.getElementById('OptionalInformationHide').style.display = 'none'; document.getElementById('OptionalInformationShowLink').style.display = 'inline'; return false;" style="display:none;"><?php _e("Hide"); ?></a>
+			 <a href="#" id="OptionalInformationHideLink" onclick="this.style.display= 'none'; document.getElementById('OptionalInformationHideDiv').style.display = 'none'; document.getElementById('OptionalInformationShowLink').style.display = 'inline'; return false;" style="display:none;"><?php _e("Hide"); ?></a>
 		</div>
 		
-		<div id="OptionalInformationHide" style="margin-left:25px; display:none;">
+		<div id="OptionalInformationHideDiv" style="margin-left:25px; display:none;">
 			<?php _e("Tracking code is added to the onclick event for links. For example, for Google Analytics use: <pre>try { _gaq.push(['_trackEvent', '" . __('Kindred Posts') . "', '" . __("Click") . "', '{post_slug}']); } catch (e) {}; </pre><div>You can track the following information:<ul style=\"margin-left:15px;\"><li>{post_id}: The id of the post</li><li>{post_url}: The permalink of the post</li><li>{post_title}: The title of the post</li><li>{post_author}: The author of the post</li><li>{post_slug}: A url friendly version of {post_title}</li></ul></div>"); ?>
 		</div>
 		
