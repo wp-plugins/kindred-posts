@@ -32,19 +32,19 @@
 	{/if kp_widget:orientation-horizontal}
 	<div class="kp_post" style="{kp_widget:post_style}" align="{kp_widget:alignment}">
 		{if show_post_thumbnail}
-			<span style="{kp_widget:postimage_style}"><a onclick="{ga_posttitle}" href="{post_url}">{post_thumbnail}</a></span><br />
+			<span style="{kp_widget:postimage_style}"><a onclick="{kp:trackingcode}" href="{post_url}">{post_thumbnail}</a></span><br />
 		{/if show_post_thumbnail}
 		
 		<div>
 		{if show_post_title}
-			<span style="{kp_widget:posttitle_style}"><a onclick="{ga_posttitle}" href="{post_url}">{post_title}</a></span><br />
+			<span style="{kp_widget:posttitle_style}"><a onclick="{kp:trackingcode}" href="{post_url}">{post_title}</a></span><br />
 		{/if show_post_title}
 		
 		{if show_post_author}
 			<span style="{kp_widget:postauthor_style}">{kp:By} 
 				<span>
 					<span class="author vcard">
-						<a class="url fn n" onclick="{ga_author}" href="{author_user_url}" rel="author">{author_user_nicename}</a>
+						<a class="url fn n" onclick="{kp:trackingcode}" href="{author_user_url}" rel="author">{author_user_nicename}</a>
 					</span>
 				</span>
 				
@@ -138,19 +138,19 @@ if ($kp_templates["kp_recommendedPost"] == "") {
 	{/if kp_widget:orientation-horizontal}
 	<div class="kp_post" style="{kp_widget:post_style}" align="{kp_widget:alignment}">
 		{if show_post_thumbnail}
-			<span style="{kp_widget:postimage_style}"><a onclick="{ga_posttitle}" href="{post_url}">{post_thumbnail}</a></span><br />
+			<span style="{kp_widget:postimage_style}"><a onclick="{kp:trackingcode}" href="{post_url}">{post_thumbnail}</a></span><br />
 		{/if show_post_thumbnail}
 		
 		<div>
 		{if show_post_title}
-			<span style="{kp_widget:posttitle_style}"><a onclick="{ga_posttitle}" href="{post_url}">{post_title}</a></span><br />
+			<span style="{kp_widget:posttitle_style}"><a onclick="{kp:trackingcode}" href="{post_url}">{post_title}</a></span><br />
 		{/if show_post_title}
 		
 		{if show_post_author}
 			<span style="{kp_widget:postauthor_style}">{kp:By} 
 				<span>
 					<span class="author vcard">
-						<a class="url fn n" onclick="{ga_author}" href="{author_user_url}" rel="author">{author_user_nicename}</a>
+						<a class="url fn n" onclick="{kp:trackingcode}" href="{author_user_url}" rel="author">{author_user_nicename}</a>
 					</span>
 				</span>
 				

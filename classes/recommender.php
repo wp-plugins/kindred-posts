@@ -5,7 +5,7 @@
 class kp_recommender {
 	public $ipAddress = ""; // The IP Address of the user making the request
 	public $userAgent = ""; // The user's user agent
-	public $posts = array(); // An array of posts that were recommended for this user
+	public $posts = array(); // An array of kp_recommendedPost objects that were recommended for this user
 	public $template = ""; 	// A template of how the posts should be rendered
 							// In order to render the posts, the template must contain {Posts}
 	
@@ -128,9 +128,10 @@ class kp_recommender {
 	 *
 	 * @param int $numToRecommend: The number of posts to recommend
 	 * @param int $numClosestUsersToUse: The number of users to use when recommending posts (more is less efficient)
+	 * @param array<string> $recommendablePostTypes: An array of post types to recommend (if empty, recommend all post types)
 	 * @return null
-	 **/
-	public function run($numPostsToRecommend = 5, $numClosestUsersToUse = -1){
+	 */
+	public function run($numPostsToRecommend = 5, $numClosestUsersToUse = -1, $recommendablePostTypes = array()){
 		// Get the unique posts and counts for each user
 		global $visitTbl, $wpdb, $defaultNumClosestUsersToUse, $maxPastUpdateDate, $trackUserAgent;
 		
@@ -145,14 +146,14 @@ class kp_recommender {
 		}
 		
 		// Determine if we are test mode and an admin, if so, display the test mode data
-		$isTestMode = (get_option('AdminTestMode', "false") == "true" && kp_isUserAdmin());
+		$isTestMode = (get_option("AdminTestMode", "false") == "true" && kp_isUserAdmin());
 		if ($isTestMode) {
 			$testModeValue = "1";		
 		} else {
 			$testModeValue = "0";
 		}		
 		
-		// Reset the recomended posts
+		// Reset the recommended posts
 		$this->posts = array();
 		
 		// Get the user's visit data
@@ -175,23 +176,23 @@ class kp_recommender {
 				SELECT * 
 				FROM $visitTbl 
 				WHERE 
-					TestData = '" . $testModeValue . "' AND 
+					TestData = %s AND 
 					(IP != %s OR UserAgent != %s) AND
 					(UpdateDate > ADDDATE(NOW(), INTERVAL %d DAY) OR CreateDate > ADDDATE(NOW(), INTERVAL %d DAY))";						
 			
 			// Get the rest of the users within the past Max Update Date (ignore test mode data)
-			$args = array($this->ipAddress, $this->userAgent, -1*$maxPastUpdateDate, -1*$maxPastUpdateDate);
+			$args = array($testModeValue, $this->ipAddress, $this->userAgent, -1*$maxPastUpdateDate, -1*$maxPastUpdateDate);
 		} else {
 			$sql = "
 				SELECT * 
 				FROM $visitTbl 
 				WHERE 
-					TestData = '" . $testModeValue . "' AND 
+					TestData = %s AND 
 					(IP != %s) AND
 					(UpdateDate > ADDDATE(NOW(), INTERVAL %d DAY) OR CreateDate > ADDDATE(NOW(), INTERVAL %d DAY))";						
 			
 			// Get the rest of the users within the past Max Update Date (ignore test mode data)
-			$args = array($this->ipAddress, -1*$maxPastUpdateDate, -1*$maxPastUpdateDate);
+			$args = array($testModeValue, $this->ipAddress, -1*$maxPastUpdateDate, -1*$maxPastUpdateDate);
 		}
 		
 		$otherUsers = $wpdb->get_results($wpdb->prepare($sql, $args), OBJECT);
@@ -244,41 +245,59 @@ class kp_recommender {
 			// Sort the final array by the counts
 			arsort($visitCounts);
 			
-			// Get the pages and ignore them
-			$ignoreIDs = array();
-			
-			if (kp_checkPro()) {
-				$ignoreIDs = kp_ignoreIDs();	
-			} 
-			
-			// Add the pages to the ignore list
-			$pages = get_pages();
-			foreach ($pages as $page) {
-				$ignoreIDs[$page->ID] = true;
+			// Build the criteria for the post types to recommend
+			$preparedPostTypes = "";
+			$preparedPostTypesArray = array();
+			$preparedPostTypeCriteria = "";
+			if (count($recommendablePostTypes) > 0) {
+				foreach ($recommendablePostTypes as $postType) {
+					if ($preparedPostTypes != "") {
+						$preparedPostTypes = $preparedPostTypes . ", ";
+					}
+					
+					$preparedPostTypes = $preparedPostTypes . "%s";
+					$preparedPostTypesArray[] = $postType;
+				}
+				
+				$preparedPostTypeCriteria  = " post_type IN (" . $preparedPostTypes . ") AND";
 			}
 			
-			// Get a list of deleted posts and add them to the ignore list
-			$deletedPosts = $wpdb->get_results("SELECT * FROM $wpdb->posts WHERE post_status != 'publish' AND post_parent = '0'", OBJECT);
-			foreach ($deletedPosts as $post) {
-				$ignoreIDs[$post->ID] = true;
+			// Get a list of posts that we can recommend
+			$recommendablePosts = array();
+			$posts = $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->posts WHERE $preparedPostTypeCriteria post_status = 'publish' AND post_parent = '0'", $preparedPostTypesArray), OBJECT);
+			
+			foreach ($posts as $post) {
+				$recommendablePosts[$post->ID] = true;
 			}
 			
-			// Add the posts that the user has already visited only if we aren't in test mode
-			if (!$isTestMode && $userVisits != null && count($userVisits) > 0) {
-				foreach ($userVisits as $postID => $numVisits) {
-					$ignoreIDs[$postID] = true;
+			// Remove certain posts if we aren't in test mode
+			if (!$isTestMode) {
+				// Remove the current post
+				if (isset($recommendablePosts[$curr_post_id])) {
+					unset($recommendablePosts[$curr_post_id]);
+				}
+				
+				// Remove posts that the user has already visited
+				if ($userVisits != null && count($userVisits) > 0) {
+					foreach ($userVisits as $postId => $numVisits) {
+						if (isset($recommendablePosts[$postId])) {
+							unset($recommendablePosts[$postId]);
+						}
+					}
 				}
 			}
 			
+			// Recommend posts from the final list
 			$i = 0;
 			foreach($visitCounts as $id => $visitCount) {
 				// Check that the post isn't in the Ignore list and that we currently aren't on the post
 				// If we are in test mode, we may recommend the current post
-				if ($i < $numPostsToRecommend && !isset($ignoreIDs[$id]) && ($isTestMode || (!$isTestMode && $curr_post_id != $id)) && $id != "") {			
+				if ($i < $numPostsToRecommend && $id != "" && isset($recommendablePosts[$id])) {			
 					array_push($this->posts, new kp_recommendedPost($id));
 					$i = $i + 1;
 				}
 			}
+			
 		} else {
 			// Need to do something
 		}
@@ -289,12 +308,17 @@ class kp_recommender {
 	/**
 	 * Save a visit to the post the user is currently at using the user's ip address and the post viewed
 	 *
+	 * @param string $postID: The ID of the post that we are saving a visit for
 	 * @return null
-	 **/
-	public function saveVisit($postID) {
-		global $visitTbl, $firstPost, $wpdb, $trackUserAgent;
+	 */
+	public function saveVisit($postID = null) {
+		global $visitTbl, $kp_firstPost, $wpdb, $trackUserAgent;
 		
-		// Check if user is bot or if they have pro version option
+		if ($postID == null) {
+			return;
+		}
+		
+		// Check if user is a bot or an ignored ip address
 		if (!kp_isUserVisitValid($this->ipAddress, $this->userAgent)) {
 			return;
 		}

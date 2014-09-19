@@ -21,18 +21,8 @@ class kp_recommendedPost {
 	 * @return array
 	 **/
 	public function getPostTemplateData($data = array()) {
-		$data["author_user_nicename"] = strtoupper(get_the_author_meta('user_nicename', $this->post->post_author));
-		$data["author_user_url"] = get_author_posts_url($this->post->post_author); //get_the_author_meta('user_url', $this->post->post_author);
-		$data["post_date"] = strtotime($this->post->post_date);
-		$data["post_date_nice"] = strtoupper(date("F j, Y", strtotime($this->post->post_date)));
-		$data["post_url"] = get_permalink($this->post->ID);
-		$data["post_excerpt"] = $this->post->post_excerpt;
-		$data["post_title"] = $this->post->post_title;
-		$data["has_thumbnail"] = (int)has_post_thumbnail($this->post->ID);
-		$data["post_thumbnail"] = get_the_post_thumbnail( $this->post->ID, array(150, 150) );
-		
-		$data["ga_posttitle"] = kp_prepareGoogleAnalytics($this->post->post_title);
-		$data["ga_author"] = kp_prepareGoogleAnalytics($data["author_user_nicename"]);
+		$data = array_merge(kp_renderer::returnTemplateData($this->post), $data);
+		$data["kp:trackingcode"] = kp_prepareTrackingCode($data);
 	
 		// Start the widget optons
 		$data["show_post_thumbnail"] = (int)($data["kp_widget:featureimage"] == 1 && $data["has_thumbnail"]);

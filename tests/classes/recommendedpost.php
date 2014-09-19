@@ -12,6 +12,7 @@ class kp_test_recommendedPost {
 		$this->test2();
 		$this->test3();
 		$this->test4();
+		$this->test5();
 	}
 	
 	/**
@@ -77,22 +78,12 @@ class kp_test_recommendedPost {
 		// Construct the recommendedPost object (rpObj) then create a template that will be filled in by the rpObj from the post's details
 		// use that same template and known post properties to see how they compare
 		try {
-			$template = "{author_user_nicename} {author_user_url} {post_date} {post_date_nice} {post_url} {post_excerpt} {post_title} {has_thumbnail} {post_thumbnail} {ga_posttitle} {ga_author}";
+			$template = "{author_user_nicename} {author_user_url} {post_date} {post_date_nice} {post_url} {post_excerpt} {post_title} {has_thumbnail} {post_thumbnail} {kp:trackingcode}";
 			$this->rpObj = new kp_recommendedPost($this->post);
 			
-			$data = array();
-			$data["author_user_nicename"] = strtoupper(get_the_author_meta('user_nicename', $this->post->post_author));
-			$data["author_user_url"] = get_author_posts_url($this->post->post_author);
-			$data["post_date"] = strtotime($this->post->post_date);
-			$data["post_date_nice"] = strtoupper(date("F j, Y", strtotime($this->post->post_date)));
-			$data["post_url"] = get_permalink($this->post->ID);
-			$data["post_excerpt"] = $this->post->post_excerpt;
-			$data["post_title"] = $this->post->post_title;
-			$data["has_thumbnail"] = (int)has_post_thumbnail($this->post->ID);
-			$data["post_thumbnail"] = get_the_post_thumbnail( $this->post->ID, array(150, 150));
-			$data["ga_posttitle"] = kp_prepareGoogleAnalytics($this->post->post_title);
-			$data["ga_author"] = kp_prepareGoogleAnalytics($data["author_user_nicename"]);			
-			
+			$data = kp_renderer::returnTemplateData($this->post);
+			$data["kp:trackingcode"] = kp_prepareTrackingCode($data);
+
 			$test = ($this->rpObj->render($template) == kp_renderer::render($template, $data));
 		} catch (Exception $e) {
 			$test = false;
@@ -100,6 +91,64 @@ class kp_test_recommendedPost {
 		
 		$testObj = new kp_test("Test 4", $test, "recommendedPost object rendered template (with data)", "recommendedPost object didn't render template (with data)");
 		$testObj->render();	
-	}		
-}
+	}
+
+	/**
+	 * Test Tracking Code
+	 **/
+	public function test5() {
+		$test = true;
+		$currentTrackingCode = get_option("kp_TrackingCode", "");
+		$currentTracking = get_option("kp_Tracking", "");
+		
+		try {
+			$this->rpObj = new kp_recommendedPost($this->post);
+			update_option("kp_Tracking", "custom");
+			
+			// Test simple tracking: {post_id}
+			$template = "{kp:trackingcode}";
+			$expected = "" . $this->post->ID . "";
+			$trackingCodeTemplate = "{post_id}";
+			update_option("kp_TrackingCode", $trackingCodeTemplate);
+			$data = kp_renderer::returnTemplateData($this->post);
+			$data["kp:trackingcode"] = kp_renderer::render($trackingCodeTemplate, $data);
+			$test5a = ($this->rpObj->render($template) == kp_renderer::render($template, $data) && kp_renderer::render($template, $data) == $expected);
+			$test = $test5a && $test;
+			$testObj = new kp_test("Test 5a", $test5a, "kp_widget passed simple Tracking Code test", "kp_widget failed simple Tracking Code test");
+			$testObj->render();
+			
+			// Test <a href="#" onclick="{post_id}"></a>
+			$template = "<a href=\"#\" onclick=\"{kp:trackingcode}\">Empty Link</a>";
+			$expected = "<a href=\"#\" onclick=\"" . $this->post->ID . "\">Empty Link</a>";
+			$trackingCodeTemplate = "{post_id}";
+			update_option("kp_TrackingCode", $trackingCodeTemplate);
+			$data = kp_renderer::returnTemplateData($this->post);
+			$data["kp:trackingcode"] = kp_renderer::render($trackingCodeTemplate, $data);
+			$test5b = ($this->rpObj->render($template) == kp_renderer::render($template, $data) && kp_renderer::render($template, $data) == $expected);
+			$test = $test5b && $test;
+			$testObj = new kp_test("Test 5b", $test5b, "kp_widget passed simple link test", "kp_widget failed simple link test");
+			$testObj->render();
+			
+			// Test <a href="#" onclick="{post_slug}"></a> with single quote
+			$template = "<a href=\"#\" onclick=\"{kp:trackingcode}\">Empty Link</a>";
+			$expected = "<a href=\"#\" onclick=\"" . $this->post->post_name . "\">Empty Link</a>";
+			$trackingCodeTemplate = "{post_slug}";
+			update_option("kp_TrackingCode", $trackingCodeTemplate);
+			$data = kp_renderer::returnTemplateData($this->post);
+			$data["kp:trackingcode"] = kp_renderer::render($trackingCodeTemplate, $data);
+			$test5c = ($this->rpObj->render($template) == kp_renderer::render($template, $data) && kp_renderer::render($template, $data) == $expected);
+			$test = $test5c && $test;
+			$testObj = new kp_test("Test 5c", $test5c, "kp_widget passed post_name test", "kp_widget failed post_name test");
+			$testObj->render();
+			
+		} catch (Exception $e) {
+			$test = false;
+		}
+		update_option("kp_TrackingCode", $currentTrackingCode);
+		update_option("kp_Tracking", $currentTracking);
+		
+		$testObj = new kp_test("Test 5", $test, "kp_widget passed Tracking Code tests", "kp_widget failed Tracking Code tests");
+		$testObj->render();	
+	}	
+} // End kp_test_recommendedPost class
 ?>

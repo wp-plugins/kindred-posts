@@ -12,7 +12,7 @@ class kp_renderer {
 	public static function prepareStringForRegex($str) {
 		return str_ireplace("/", "\/", preg_quote($str));
 	}
-
+	
 	/**
 	 * Render the template with data
 	 *
@@ -97,6 +97,36 @@ class kp_renderer {
 				$template = str_ireplace("{" . $key . "}", $val, $template);
 			}
 		}	
+	}
+	
+	/**
+	 * Return data for a template using a post
+	 *
+	 * @param WP_Post $post: The post to return data for
+	 * @return array<string>: Array of post information
+	 *
+	 * @since 1.3.0
+	 */
+	public static function returnTemplateData($post = null) {
+		$data = array();
+		if ($post == null) {
+			return $data;
+		}
+		
+		$data["post_id"] = $post->ID;
+		$data["author_user_nicename"] = strtoupper(get_the_author_meta("user_nicename", $post->post_author));
+		$data["post_author"] = get_the_author_meta("user_nicename", $post->post_author);
+		$data["post_slug"] = $post->post_name;
+		$data["author_user_url"] = get_author_posts_url($post->post_author); //get_the_author_meta('user_url', $this->post->post_author);
+		$data["post_date"] = strtotime($post->post_date);
+		$data["post_date_nice"] = strtoupper(date("F j, Y", strtotime($post->post_date)));
+		$data["post_url"] = get_permalink($post->ID);
+		$data["post_excerpt"] = $post->post_excerpt;
+		$data["post_title"] = $post->post_title;
+		$data["has_thumbnail"] = (int)has_post_thumbnail($post->ID);
+		$data["post_thumbnail"] = get_the_post_thumbnail($post->ID, 'thumbnail');
+		
+		return $data;
 	}	
 } // End kp_renderer class
 ?>

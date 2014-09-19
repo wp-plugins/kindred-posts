@@ -39,17 +39,21 @@ class kp_testData {
 	/**
 	 * Insert test posts into database
 	 *
+	 * @param int $numToInsert: The number of posts to insert
+	 * @param string $postType: The type of posts to insert
 	 * @return array: Holds the IDs of the posts inserted
 	 **/
-	public function insertTestPosts($numToInsert = 10) {
-		$i = count($this->testPostIDs) + 1;
-		while ($i <= $numToInsert){
+	public function insertTestPosts($numToInsert = 10, $postType = "post") {
+		$currentNumberTestPosts = count($this->testPostIDs);
+		$i = $currentNumberTestPosts + 1;
+		while ($i <= $currentNumberTestPosts + $numToInsert){
 			$testPost = array(
-				'post_title'    => 'My post ' . $i,
-				'post_content'  => 'This is my post ' . $i,
-				'post_status'   => 'publish',
-				'post_author'   => 1,
-				'post_category' => array()
+				"post_title"    => "My " . $postType . " " . $i,
+				"post_content"  => "This is my " . $postType . " " . $i,
+				"post_status"   => "publish",
+				"post_author"   => 1,
+				"post_category" => array(),
+				"post_type"		=> $postType
 			);
 			
 			$postID = wp_insert_post($testPost);

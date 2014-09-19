@@ -1,46 +1,13 @@
 <?php
 /**
- * Create the tables used in the plugin
- *
- * @return null
- **/
-function kp_createTable() {
-	global $visitTbl;
-	global $wpdb;
-	global $kp_db_version;
-	
-	$installed_ver = get_option("kp_db_version", "");
-	if ($installed_ver != $kp_db_version) {
-		$sql = "CREATE TABLE $visitTbl (
-			VisitID bigint(20) NOT NULL AUTO_INCREMENT,
-			IP varchar(64),
-			Visits longtext,
-			UserAgent varchar(128),
-			TestData int(1) NOT NULL DEFAULT '0',
-			DataSent int(1) NOT NULL DEFAULT '0',
-			CreateDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-			UpdateDate TIMESTAMP DEFAULT '0000-00-00 00:00:00',
-			UNIQUE KEY VisitID (VisitID)
-		);";
-
-		require_once(ABSPATH . "wp-admin/includes/upgrade.php");
-		dbDelta($sql);
-		
-		update_option("kp_db_version", $kp_db_version);
-	}
-	
-	return null;
-}
-
-/**
  * Check if we need to update the database
  *
  * @return null
  **/
 function kp_dbCheck() {
-	global $kp_db_version;
-    if (get_option('kp_db_version', "") != $kp_db_version) {
-        kp_createTable();
+	global $kp_DbVersion;
+    if (get_option("kp_DbVersion", "") != $kp_DbVersion) {
+        kp_updateDatabase();
     }
 	
 	return null;
@@ -109,6 +76,8 @@ function kp_insertTestModeData() {
 /**
  * Delete the visit data in the database
  *
+ * @param string $ip: The IP to remove from the visit table
+ * @param string $ua: The User Agent to remove from the visit table
  * @return null
  **/
 function kp_resetVisitData($ip = "", $ua = "") {
@@ -122,11 +91,57 @@ function kp_resetVisitData($ip = "", $ua = "") {
 		
 	} else if ($ua != "") {
 		$wpdb->query($wpdb->prepare("DELETE FROM $visitTbl WHERE UserAgent = %s", $ua));
-		
+	
+	// If both are blank, then delete all the rows
 	} else {
 		$wpdb->query("DELETE FROM $visitTbl");
 	}
 	
 	return null;
 }
-?>
+
+/**
+ * Handle creating and updating the database tables used in the plugin
+ *
+ * @return null
+ *
+ * @since 1.3.0
+ */
+function kp_updateDatabase() {
+	global $visitTbl;
+	global $wpdb;
+	global $kp_DbVersion;
+	
+	$currentVersion = get_option("kp_DbVersion", "0.0");
+	
+	$sql = "";
+	$newVersion = "0.0";
+	if ($currentVersion == "0.0") {
+		$newVersion = "1.1";
+		$sql = "CREATE TABLE IF NOT EXISTS $visitTbl (
+			VisitID bigint(20) NOT NULL AUTO_INCREMENT,
+			IP varchar(64),
+			Visits longtext,
+			UserAgent varchar(128),
+			TestData int(1) NOT NULL DEFAULT '0',
+			DataSent int(1) NOT NULL DEFAULT '0',
+			CreateDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			UpdateDate TIMESTAMP DEFAULT '0000-00-00 00:00:00',
+			UNIQUE KEY VisitID (VisitID)
+		);";
+	}
+	// In the future we will add more if statements here to alter / add tables based on version
+	if ($currentVersion == "1.1") {
+		// Run the update get from 1.1 to x.x
+	}
+	
+	// Run the database update and call this function again to see if we need to make more updates
+	if ($sql != "") {
+		require_once(ABSPATH . "wp-admin/includes/upgrade.php");
+		dbDelta($sql);
+		update_option("kp_DbVersion", $newVersion);
+		kp_updateDatabase();
+	}
+	
+	return null;
+}

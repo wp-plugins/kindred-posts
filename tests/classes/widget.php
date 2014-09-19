@@ -7,12 +7,12 @@ class kp_test_widget {
 		 * 	Test rendering
 		 *		- Render widget with/out Title
 		 *		- The correct number of posts are recommended (if the number of existing posts exists the number of posts to recommend)
-		 *		- Each checkbox
-		 *		- Horiztonal vs. Vertical
+		 *		- Different types of recommended posts
 		 **/
 		$this->test1(); // Construct the kp_widget
 		$this->test2(); // Widget -> Title (with/out content)
 		$this->test3(); // Widget -> Number of Posts
+		$this->test4(); // Widget -> different post types
 	}
 	
 	/**
@@ -121,6 +121,73 @@ class kp_test_widget {
 		
 		$testObj = new kp_test("Test 3", $test, "kp_widget passed Number of Posts tests", "kp_widget failed Number of Posts tests");
 		$testObj->render();	
-	}	 
+	}
+	
+	function test4() {
+		$test = true;
+		
+		// Prepare the test data
+		$testData = new kp_testData();
+		$testPostIDs = $testData->insertTestPosts(3, "post");
+		$testPageIDs = $testData->insertTestPosts(3, "page");
+		$postKeys = array_keys($testPostIDs);
+		$pageKeys = array_keys($testPageIDs);
+		$user1 = new kp_testUser(array($postKeys[0], $pageKeys[0], $attachmentKeys[0]), array()); 
+		$user2 = new kp_testUser(array($postKeys[0], $postKeys[1], $postKeys[2], $pageKeys[0], $pageKeys[1], $pageKeys[2]), array());
+		
+		try {
+			// Recommend only posts
+			$test4a = true;
+			$widgetObj = new kp_widget();
+			$widgetInstance = array("posttypes-post" => true, "posttypes-page" => false, "numposts" => 6);
+			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent);
+			$recommender = $widgetResults["recommender"];
+			foreach ($recommender->posts as $recommendedPost) {
+				$test4a = $test4a && ($recommendedPost->post->post_type == "post");
+			}
+			$test = $test && $test4a;
+			
+			// Recommend only page (don't specify what to do with posts or pages)
+			$test4b = true;
+			$widgetObj = new kp_widget();
+			$widgetInstance = array("posttypes-page" => true, "numposts" => 6);
+			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent);
+			$recommender = $widgetResults["recommender"];
+			foreach ($recommender->posts as $recommendedPost) {
+				$test4b = $test4b && ($recommendedPost->post->post_type == "page");
+			}
+			$test = $test && $test4b;
+			
+			// Recommend only kp_test_custom and pages but not posts
+			$test4c = true;
+			$widgetObj = new kp_widget();
+			$widgetInstance = array("posttypes-post" => true, "posttypes-page" => true, "numposts" => 10);
+			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent);
+			$recommender = $widgetResults["recommender"];
+			foreach ($recommender->posts as $recommendedPost) {
+				$test4c = $test4c && ($recommendedPost->post->post_type == "post" || $recommendedPost->post->post_type == "page");
+			}
+			$test = $test && $test4c;
+			
+			// Don't set any post types, default to all post types
+			$test4d = true;
+			$widgetObj = new kp_widget();
+			$widgetInstance = array("numposts" => 10);
+			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent);
+			$recommender = $widgetResults["recommender"];
+			foreach ($recommender->posts as $recommendedPost) {
+				$test4d = $test4d && ($recommendedPost->post->post_type == "post" || $recommendedPost->post->post_type == "page");
+			}
+			$test = $test && $test4d;
+		} catch (Exception $e) {
+		}
+		// Remove the test data
+		$user1->deleteVisitData();
+		$user2->deleteVisitData();
+		$testData->deleteAllTestPosts();
+	
+		$testObj = new kp_test("Test 4", $test, "kp_widget passed different post types tests", "kp_widget failed different post types tests");
+		$testObj->render();	
+	}
 } // End kp_test_widget class
 ?>

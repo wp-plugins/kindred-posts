@@ -8,9 +8,9 @@ class kp_widget extends WP_Widget {
 	 **/
 	public function __construct() {
 		parent::__construct(
-	 		'kp_widget', // Base ID of class
-			'Kindred Posts', // Name of widget
-			array('description' => __('Recommend Posts to visitors', 'text_domain'), ) // Args
+	 		"kp_widget", // Base ID of class
+			"Kindred Posts", // Name of widget
+			array("description" => __("Recommend Posts to visitors", "text_domain"), ) // Args
 		);
 	}
 
@@ -37,31 +37,32 @@ class kp_widget extends WP_Widget {
 	 * @return array: Updated safe values to be saved.
 	 */
 	public function update($newInstance, $oldInstance) {
-		global $defaultOrientation; 
+		global $kp_defaultOrientation; 
 		
 		// $Instance stores the values that we want to save in the database
 		$instance = array();
-		$instance['previouslysaved'] = (isset($newInstance['previouslysaved'] ) ? 1 : 0);
-		$instance['title'] = strip_tags($newInstance['title']);
-		$instance['numposts'] = strip_tags($newInstance['numposts']);
-		$instance['featureimage'] = (isset($newInstance['featureimage'] ) ? 1 : 0);  
-		$instance['posttitle'] = (isset($newInstance['posttitle'] ) ? 1 : 0);  
-		$instance['postauthor'] = (isset($newInstance['postauthor'] ) ? 1 : 0);  
-		$instance['postdate'] = (isset($newInstance['postdate'] ) ? 1 : 0);  
-		$instance['postteaser'] = (isset($newInstance['postteaser'] ) ? 1 : 0);
+		$instance["previouslysaved"] = (isset($newInstance["previouslysaved"]) ? 1 : 0);
+		$instance["title"] = strip_tags($newInstance['title']);
+		$instance["numposts"] = strip_tags($newInstance['numposts']);
+		$instance["featureimage"] = (isset($newInstance['featureimage']) ? 1 : 0);  
+		$instance["posttitle"] = (isset($newInstance['posttitle']) ? 1 : 0);  
+		$instance["postauthor"] = (isset($newInstance['postauthor']) ? 1 : 0);  
+		$instance["postdate"] = (isset($newInstance['postdate']) ? 1 : 0);  
+		$instance["postteaser"] = (isset($newInstance['postteaser']) ? 1 : 0);
 		
-		// Check if they set an orientation for the widget, if not, use $defaultOrientation
+		// Check if they set an orientation for the widget, if not, use $kp_defaultOrientation
+		$instance["orientation"] = strip_tags($newInstance["orientation"]);
 		if (!isset($newInstance["orientation"])){
-			$instance["orientation"] = $defaultOrientation;
-		} else {
-			$instance["orientation"] = strip_tags($newInstance["orientation"]);
+			$instance["orientation"] = $kp_defaultOrientation;
 		}
 
-		// Save pro widget options
-		if (kp_checkPro()){
-			$instance = kp_saveProOptions($instance, $newInstance);
+		$instance["alignment"] = strip_tags($newInstance["alignment"]);
+		
+		$postTypes = kp_getRecommendablePostTypes();		
+		foreach ($postTypes as $postType) {
+			$instance["posttypes-" . $postType] = (isset($newInstance["posttypes-" . $postType]) ? 1 : 0);
 		}
-
+		
 		return $instance;
 	}
 	
@@ -79,13 +80,13 @@ class kp_widget extends WP_Widget {
 	 * @return string: The Html for the widget
 	 **/
 	public function widget($args, $instance, $outputWidgetHtml = true, $template = "", $data = array(), $recommendedPosts = array(), $ip = "", $ua = "") {
-		global $defaultNumPostsToRecommend, $kp_templates;
+		global $defaultNumPostsToRecommend, $kp_templates, $kp_defaultAlignment;
 		
-		// Check if we are in test mode and if the user is an admin, if they aren't, don't show the widget
-		if (get_option('AdminTestMode', "false") == "true" && !kp_isUserAdmin()) {
+		// If we are in test mode and if the user isn't an admin, don't show the widget
+		if (get_option("AdminTestMode", "false") == "true" && !kp_isUserAdmin()) {
 			return array("widgetHtml" => "", "recommender" => null);
 		}
-		
+
 		// Check if some of the widget arguments have been passed, if not, fix them
 		// so we don't run into any problems rendering the template
 		if (!isset($args["before_widget"])) {
@@ -128,6 +129,7 @@ class kp_widget extends WP_Widget {
 			$instance["postteaser"] = false;
 		}			
 		
+		// Get the template we are going to render
 		if ($template == "" && isset($kp_templates["kp_widget"])){
 			$template = $kp_templates["kp_widget"];
 		}
@@ -139,23 +141,43 @@ class kp_widget extends WP_Widget {
 			$numPostsToRecommend = (int)$instance["numposts"];
 		}
 		
+		// Get the different types of posts that we should recommend
+		$recommendablePostTypes = array();
+		$potentialRecommendablePostTypes = array(); // Store this in case we run into no post types being set (default to everything)
+		$postTypes = kp_getRecommendablePostTypes();		
+		foreach ($postTypes as $postType) {
+			$potentialRecommendablePostTypes[] = $postType;
+			// Recommend the Post Type if it is set to true within the Widget
+			if (isset($instance["posttypes-" . $postType]) && (string)$instance["posttypes-" . $postType] == "1") {
+				$recommendablePostTypes[] = $postType;
+			}
+		}
+		
+		// If we aren't recommending any type, default to all using $potentialRecommendablePostTypes
+		if (count($recommendablePostTypes) == 0) {
+			$recommendablePostTypes = $potentialRecommendablePostTypes;
+		}		
+		
 		$widgetTitle = apply_filters("widget_title", $instance["title"]);
 		
 		// Start data for this specific widget
-		$alignment = $defaultAlignment;
-		$post_style = "padding-top:10px;padding-bottom:10px;";
-		$postimage_style = "display:inline;";
-		$posttitle_style = "display:inline;";
-		$postauthor_style = "display:inline;";
-		$postdate_style = "display:inline;";
-		$postteaser_style = "display:inline;";	
-		
-		if (kp_checkPro()){
-			$arr = kp_getProWidgetOptions($instance);
-			extract($arr);
+		$alignment = $kp_defaultAlignment;
+		if ($instance["alignment"] == "left") {
+			$alignment = "left";
+		} else if ($instance["alignment"] == "right") {
+			$alignment = "right";
+		} else if ($instance["alignment"] == "center") {
+			$alignment = "center";
 		}
 		
-		return kp_renderWidget($numPostsToRecommend, $recommendedPosts, $template, $ip, $ua, $outputWidgetHtml, $widgetTitle, $post_style, $postimage_style, $posttitle_style, $postauthor_style, $postdate_style, $postteaser_style, $args["before_widget"], $args["after_widget"], $args["before_title"], $args["after_title"], $alignment, $instance["featureimage"], $instance["posttitle"], $instance["postauthor"], $instance["postdate"], $instance["postteaser"]);
+		$post_style = "padding-top:10px;padding-bottom:10px;";
+		$postimage_style = "";
+		$posttitle_style = "";
+		$postauthor_style = "";
+		$postdate_style = "";
+		$postteaser_style = "";	
+		
+		return kp_renderWidget($numPostsToRecommend, $recommendedPosts, $template, $ip, $ua, $outputWidgetHtml, $widgetTitle, $post_style, $postimage_style, $posttitle_style, $postauthor_style, $postdate_style, $postteaser_style, $args["before_widget"], $args["after_widget"], $args["before_title"], $args["after_title"], $alignment, $instance["featureimage"], $instance["posttitle"], $instance["postauthor"], $instance["postdate"], $instance["postteaser"], $recommendablePostTypes, $trackingCode);
 	}
 } // End kp_widget class
 ?>
