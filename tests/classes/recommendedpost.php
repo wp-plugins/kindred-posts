@@ -7,7 +7,7 @@ class kp_test_recommendedPost {
 		$this->post = get_post($postID);
 	}
 	
-	public function runTests(){
+	public function runTests() {
 		$this->test1();
 		$this->test2();
 		$this->test3();

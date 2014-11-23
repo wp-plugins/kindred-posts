@@ -85,7 +85,7 @@ class kp_test_widget {
 			// Test a standard number of posts
 			$expectedNumPosts = 4;
 			$widgetInstance = array("numposts" => 4);
-			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent);
+			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent, true);
 			$recommender = $widgetResults["recommender"];
 			$test3a = (count($recommender->posts) == $expectedNumPosts);
 			$testObj = new kp_test("Test 3a", $test3a, "kp_widget passed standard Number of Posts test", "kp_widget failed standard Number of Posts test");
@@ -94,7 +94,7 @@ class kp_test_widget {
 			// Test that a string falls back to the default
 			$expectedNumPosts = $defaultNumPostsToRecommend;
 			$widgetInstance = array("numposts" => "asd4");
-			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent);
+			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent, true);
 			$recommender = $widgetResults["recommender"];
 			$test3b = (count($recommender->posts) == $expectedNumPosts);
 			$testObj = new kp_test("Test 3b", $test3b, "kp_widget passed fallback Number of Posts test", "kp_widget failed fallback Number of Posts test");
@@ -104,7 +104,7 @@ class kp_test_widget {
 			$expectedNumPosts = count($user2->visitedPostIDs)-1;
 			$widgetInstance = array("numposts" => (wp_count_posts('post', 'readable')->publish + 50));
 			// Recommend for User 1 
-			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent);
+			$widgetResults = $widgetObj->widget(array(), $widgetInstance, false, "", array(), array(), $user1->ipAddress, $user1->userAgent, true);
 			$recommender = $widgetResults["recommender"];
 			$test3c = (count($recommender->posts) == $expectedNumPosts);
 			$testObj = new kp_test("Test 3c", $test3b, "kp_widget passed cloning Number of Posts test", "kp_widget failed cloning Number of Posts test");

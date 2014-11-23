@@ -24,9 +24,9 @@ function kp_settingsPage(){
 	global $kp_pluginUrl, $kp_helpUrl, $kp_donationUrl;
 	global $kp_defaultCollectStatistics, $kp_defaultAttemptToBlockBotVisits, $kp_defaultAdminTestMode;
 	
-	$CollectStatistics = get_option('CollectStatistics', (string) $kp_defaultCollectStatistics);
-	$AttemptToBlockBotVisits = get_option('AttemptToBlockBotVisits', (string) $kp_defaultAttemptToBlockBotVisits);
-	$AdminTestMode = get_option('AdminTestMode', (string) $kp_defaultAdminTestMode);	
+	$CollectStatistics = get_option("kp_CollectStatistics", (string) $kp_defaultCollectStatistics);
+	$AttemptToBlockBotVisits = get_option("kp_AttemptToBlockBotVisits", (string) $kp_defaultAttemptToBlockBotVisits);
+	$AdminTestMode = get_option("kp_AdminTestMode", (string) $kp_defaultAdminTestMode);	
 	
 	// Check if the admin wants to switch to test mode
 	if (isset($_GET['settings-updated']) && $_GET['settings-updated'] == "true") {
@@ -85,12 +85,12 @@ function kp_settingsPage(){
 	
 	<h3><strong><?php _e('Plugin Status:'); ?>
 	<?php
-	if (get_option('CollectStatistics', "true") == "true") { 
+	if (get_option("kp_CollectStatistics", "true") == "true") { 
 	?>
 		<span style="color:green;">
 			<?php 
 			_e('Collecting Data'); 
-			if (get_option('AdminTestMode', "false") == "true") { 
+			if (get_option("kp_AdminTestMode", "false") == "true") { 
 				_e(': In Test Mode');
 			}
 			?>
@@ -101,7 +101,7 @@ function kp_settingsPage(){
 		<span style="color:red;">
 			<?php 
 			_e('Not Collecting Data'); 
-			if (get_option('AdminTestMode', "false") == "true") { 
+			if (get_option("kp_AdminTestMode", "false") == "true") { 
 				_e(': In Test Mode');
 			}
 			?>
@@ -220,8 +220,8 @@ function kp_advancedSettingsBox() {
 function kp_feedbackBox() {
 	global $kp_feedbackUrl;
 	
-	$hideFeedbackBox = (get_option("HideFeedbackBox", "false") == "true");
-	$feedbackMsg = get_option("FeedbackMsg", "");
+	$hideFeedbackBox = (get_option("kp_HideFeedbackBox", "false") == "true");
+	$feedbackMsg = get_option("kp_FeedbackMsg", "");
 ?>
 	<div id="feedbackBox" class="postbox">
 	<h3 class="hndle" style="font-size:15px; padding:7px 10px 7px 10px; cursor:default; <?php if ($hideFeedbackBox && $feedbackMsg == "") { ?>margin-bottom:0px;<?php } ?>">
@@ -295,8 +295,8 @@ function kp_feedbackBox() {
 		<?php 
 		settings_fields("kp_feedback"); // Outputs a nonce for the form
 		?>	
-		<input type="hidden" id="HideFeedbackBox" name="HideFeedbackBox" value="false" />
-		<input type="hidden" id="FeedbackMsg" name="FeedbackMsg" value="" />
+		<input type="hidden" id="kp_HideFeedbackBox" name="kp_HideFeedbackBox" value="false" />
+		<input type="hidden" id="kp_FeedbackMsg" name="kp_FeedbackMsg" value="" />
 	</form>
 	</div>
 	</div>
@@ -375,9 +375,9 @@ function kp_foundBugBox() {
 }
 
 function kp_settingsBox() {
-	$CollectStatistics = get_option("CollectStatistics", "true");
-	$AttemptToBlockBotVisits = get_option("AttemptToBlockBotVisits", "true");
-	$AdminTestMode = get_option("AdminTestMode", "false");	
+	$CollectStatistics = get_option("kp_CollectStatistics", "true");
+	$AttemptToBlockBotVisits = get_option("kp_AttemptToBlockBotVisits", "true");
+	$AdminTestMode = get_option("kp_AdminTestMode", "false");	
 ?>
 	<div id="settingsBox" class="postbox">
 	<h3 class="hndle" style="font-size:15px;padding:7px 10px 7px 10px; cursor:default;">
@@ -395,28 +395,28 @@ function kp_settingsBox() {
 	<p><?php _e('By enabling this plugin, a widget that recommends posts to users has been added in the <a href="' . admin_url( 'widgets.php') . '">Widget</a> menu that you can drag and drop into your theme.'); ?></p>
 	<hr />
 	<p>
-		<input type="checkbox" name="AdminTestMode" value="true" id="AdminTestMode"<?php checked($AdminTestMode == "true"); ?> />
-		<label for="AdminTestMode"><?php _e('Enable Test Mode - '); ?><a id="SeeMoreLink" href="#" onclick="document.getElementById('TestModeDescription').style.display = 'inline'; this.style.display = 'none'; return false;"><?php _e('What is this?'); ?></a>
+		<input type="checkbox" name="kp_AdminTestMode" value="true" id="kp_AdminTestMode"<?php checked($AdminTestMode == "true"); ?> />
+		<label for="kp_AdminTestMode"><?php _e('Enable Test Mode - '); ?><a id="SeeMoreLink" href="#" onclick="document.getElementById('TestModeDescription').style.display = 'inline'; this.style.display = 'none'; return false;"><?php _e('What is this?'); ?></a>
 		<span id="TestModeDescription" style="display:none;"><?php _e('Test mode allows administrators to see how the plugin will behave for website visitors using fake visit data. While in test mode, the widget will only appear to administrators that can edit plugins and themes. NOTE: Even within test mode, data can still be collected about website visitors.'); ?> <a href="#" onclick="document.getElementById('TestModeDescription').style.display = 'none'; document.getElementById('SeeMoreLink').style.display = 'inline'; return false;"><?php _e('Hide'); ?></a></span>
 		</label>
 		<br />
 	</p>	
 	
 	<p>
-		<input type="radio" name="CollectStatistics" value="true" id="CollectStatistics-true"<?php checked($CollectStatistics == "true"); ?> />
+		<input type="radio" name="kp_CollectStatistics" value="true" id="CollectStatistics-true"<?php checked($CollectStatistics == "true"); ?> />
 		<label for="CollectStatistics-true"><?php _e('Collect User Visit data'); ?></label>
 		<br />
 		
-		<input type="radio" name="CollectStatistics" value="false" id="CollectStatistics-false"<?php checked($CollectStatistics != "true"); ?> />
+		<input type="radio" name="kp_CollectStatistics" value="false" id="CollectStatistics-false"<?php checked($CollectStatistics != "true"); ?> />
 		<label for="CollectStatistics-false"><?php _e('<strong>STOP</strong> collecting User Visit data'); ?></label>
 	</p>
 	
 	<p>
-		<input type="radio" name="AttemptToBlockBotVisits" value="true" id="AttemptToBlockBotVisits-true"<?php checked($AttemptToBlockBotVisits == "true"); ?> />
+		<input type="radio" name="kp_AttemptToBlockBotVisits" value="true" id="AttemptToBlockBotVisits-true"<?php checked($AttemptToBlockBotVisits == "true"); ?> />
 		<label for="AttemptToBlockBotVisits-true"><?php _e('Ignore Bot Visits such as the Googlebot, Bingbot, etc. <em>(Recommended)</em>'); ?></label>
 		<br />
 		
-		<input type="radio" name="AttemptToBlockBotVisits" value="false" id="AttemptToBlockBotVisits-false"<?php checked($AttemptToBlockBotVisits == "false"); ?> />
+		<input type="radio" name="kp_AttemptToBlockBotVisits" value="false" id="AttemptToBlockBotVisits-false"<?php checked($AttemptToBlockBotVisits == "false"); ?> />
 		<label for="AttemptToBlockBotVisits-false"><?php _e('Record Bot Visits'); ?></label>
 		<br />
 	</p>

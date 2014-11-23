@@ -129,9 +129,10 @@ class kp_recommender {
 	 * @param int $numToRecommend: The number of posts to recommend
 	 * @param int $numClosestUsersToUse: The number of users to use when recommending posts (more is less efficient)
 	 * @param array<string> $recommendablePostTypes: An array of post types to recommend (if empty, recommend all post types)
+	 * @param bool $testModeValue: Indicates if we are in test mode and what value to look for
 	 * @return null
 	 */
-	public function run($numPostsToRecommend = 5, $numClosestUsersToUse = -1, $recommendablePostTypes = array()){
+	public function run($numPostsToRecommend = 5, $numClosestUsersToUse = -1, $recommendablePostTypes = array(), $testModeValue = null){
 		// Get the unique posts and counts for each user
 		global $visitTbl, $wpdb, $defaultNumClosestUsersToUse, $maxPastUpdateDate, $trackUserAgent;
 		
@@ -146,12 +147,15 @@ class kp_recommender {
 		}
 		
 		// Determine if we are test mode and an admin, if so, display the test mode data
-		$isTestMode = (get_option("AdminTestMode", "false") == "true" && kp_isUserAdmin());
-		if ($isTestMode) {
-			$testModeValue = "1";		
-		} else {
-			$testModeValue = "0";
-		}		
+		$isAdmin = kp_isUserAdmin();
+		if (!isset($testModeValue)) {
+			$isTestMode = (get_option("kp_AdminTestMode", "false") == "true" && $isAdmin);
+			if ($isTestMode) {
+				$testModeValue = "1";		
+			} else {
+				$testModeValue = "0";
+			}
+		}
 		
 		// Reset the recommended posts
 		$this->posts = array();
@@ -309,9 +313,10 @@ class kp_recommender {
 	 * Save a visit to the post the user is currently at using the user's ip address and the post viewed
 	 *
 	 * @param string $postID: The ID of the post that we are saving a visit for
+	 * @param bool $testData: Indicates if we are saving test data
 	 * @return null
 	 */
-	public function saveVisit($postID = null) {
+	public function saveVisit($postID = null, $testData = false) {
 		global $visitTbl, $kp_firstPost, $wpdb, $trackUserAgent;
 		
 		if ($postID == null) {
@@ -343,9 +348,9 @@ class kp_recommender {
 			
 			// Update the row
 			if ($trackUserAgent) {
-				$wpdb->query($wpdb->prepare("UPDATE $visitTbl SET Visits=%s, UpdateDate=NOW(), DataSent='0' WHERE IP=%s AND UserAgent=%s", serialize($Visits), $this->ipAddress, $this->userAgent));
+				$wpdb->query($wpdb->prepare("UPDATE $visitTbl SET Visits=%s, UpdateDate=NOW(), DataSent='0', TestData=%d WHERE IP=%s AND UserAgent=%s", serialize($Visits), $testData, $this->ipAddress, $this->userAgent));
 			} else {
-				$wpdb->query($wpdb->prepare("UPDATE $visitTbl SET Visits=%s, UpdateDate=NOW(), DataSent='0' WHERE IP=%s", serialize($Visits), $this->ipAddress));
+				$wpdb->query($wpdb->prepare("UPDATE $visitTbl SET Visits=%s, UpdateDate=NOW(), DataSent='0', TestData=%d WHERE IP=%s", serialize($Visits), $testData, $this->ipAddress));
 			}
 			
 		} else {

@@ -3,8 +3,8 @@ Contributors: AiSpork
 Donate link: http://AiSpork.com/
 Tags: data mining, artificial intelligence, recommendations, similar posts, related posts, relevant content, content curation, user engagement, analytics, personalization
 Requires at least: 3.1
-Tested up to: 4.0
-Stable tag: 1.3.0
+Tested up to: 4.1
+Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,6 +51,10 @@ The "theme" directory allows you to control how different aspects of the plugin 
 
 == Changelog ==
 
+= 1.3.1 =
+* Fixes to include files and global configuration variables. 
+* Updating Option Names.
+* Other bug fixes.
 = 1.3.0 =
 * Updating settings with ability to recommend custom post types, add tracking code, block IP addresses from being tracked, and delete certain visit data.
 * General bug fixes.
@@ -79,6 +83,8 @@ The "theme" directory allows you to control how different aspects of the plugin 
 
 == Upgrade Notice ==
 
+= 1.3.1 =
+* No database changes.
 = 1.3.0 =
 * No database changes.
 = 1.2.5 =

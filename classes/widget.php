@@ -77,13 +77,14 @@ class kp_widget extends WP_Widget {
 	 * @param Array $recommendedPosts: An array of posts to display (if none, run the recommender)
 	 * @param string $ip: The IP Address of the user rendering the widget
 	 * @param string $ua: The User Agent of the user rendering the widget
+	 * @param bool $testModeValue: Indicates if we are in test mode and what value to look for
 	 * @return string: The Html for the widget
 	 **/
-	public function widget($args, $instance, $outputWidgetHtml = true, $template = "", $data = array(), $recommendedPosts = array(), $ip = "", $ua = "") {
+	public function widget($args, $instance, $outputWidgetHtml = true, $template = "", $data = array(), $recommendedPosts = array(), $ip = "", $ua = "", $testModeValue = null) {
 		global $defaultNumPostsToRecommend, $kp_templates, $kp_defaultAlignment;
-		
+
 		// If we are in test mode and if the user isn't an admin, don't show the widget
-		if (get_option("AdminTestMode", "false") == "true" && !kp_isUserAdmin()) {
+		if (get_option("kp_AdminTestMode", "false") == "true" && !kp_isUserAdmin()) {
 			return array("widgetHtml" => "", "recommender" => null);
 		}
 
@@ -177,7 +178,7 @@ class kp_widget extends WP_Widget {
 		$postdate_style = "";
 		$postteaser_style = "";	
 		
-		return kp_renderWidget($numPostsToRecommend, $recommendedPosts, $template, $ip, $ua, $outputWidgetHtml, $widgetTitle, $post_style, $postimage_style, $posttitle_style, $postauthor_style, $postdate_style, $postteaser_style, $args["before_widget"], $args["after_widget"], $args["before_title"], $args["after_title"], $alignment, $instance["featureimage"], $instance["posttitle"], $instance["postauthor"], $instance["postdate"], $instance["postteaser"], $recommendablePostTypes, $trackingCode);
+		return kp_renderWidget($numPostsToRecommend, $recommendedPosts, $template, $ip, $ua, $outputWidgetHtml, $widgetTitle, $post_style, $postimage_style, $posttitle_style, $postauthor_style, $postdate_style, $postteaser_style, $args["before_widget"], $args["after_widget"], $args["before_title"], $args["after_title"], $alignment, $instance["featureimage"], $instance["posttitle"], $instance["postauthor"], $instance["postdate"], $instance["postteaser"], $recommendablePostTypes, $trackingCode, $testModeValue);
 	}
 } // End kp_widget class
 ?>

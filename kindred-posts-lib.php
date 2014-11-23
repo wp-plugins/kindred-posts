@@ -343,7 +343,7 @@ function kp_isUserVisitValid($ip, $ua) {
 	}
 
 	// If the user agent contains a bot user agent, return false
-	if (get_option("AttemptToBlockBotVisits", "true") == "true") {
+	if (get_option("kp_AttemptToBlockBotVisits", "true") == "true") {
 		return !kp_isUserBot($ua);
 	}
 	
@@ -359,6 +359,8 @@ function kp_isUserVisitValid($ip, $ua) {
  */
 function kp_load() {
 	kp_loadConfig();
+	kp_updateOptions();
+	
 	kp_loadClasses();
 	kp_loadDb();
 	kp_loadThemes();
@@ -500,11 +502,11 @@ function kp_prepareTrackingCode($postData = null) {
  * @return void
  */
 function kp_registerSettings() {
-	register_setting("kp_settings", "CollectStatistics");
-	register_setting("kp_settings", "AttemptToBlockBotVisits");
-	register_setting("kp_settings", "AdminTestMode");	
-	register_setting("kp_feedback", "HideFeedbackBox");
-	register_setting("kp_feedback", "FeedbackMsg");
+	register_setting("kp_settings", "kp_CollectStatistics");
+	register_setting("kp_settings", "kp_AttemptToBlockBotVisits");
+	register_setting("kp_settings", "kp_AdminTestMode");	
+	register_setting("kp_feedback", "kp_HideFeedbackBox");
+	register_setting("kp_feedback", "kp_FeedbackMsg");
 	register_setting("kp_advancedSettings", "kp_Tracking");
 	register_setting("kp_advancedSettings", "kp_TrackingCode");
 	register_setting("kp_advancedSettings", "kp_BlockedIps");
@@ -553,13 +555,14 @@ function kp_registerSettingsPage(){
  * @param bool $show_postteaser: Used in rendering the widget (shows posts' teaser, deprecated?)
  * @param array<string> $recommendablePostTypes: An array of post types to recommend (if empty, recommend all post types)
  * @param string $trackingCode: Used in rendering the tracking code for posts
+ * @param bool $testModeValue: Indicates if we are in test mode and what value to look for
  * @return array: ("widgetHTML" => the html for the widget, "recommender" => the recommender if it was created)
  **/
-function kp_renderWidget($numPostsToRecommend = -1, $recommendedPosts = array(), $template = "", $ip = "", $ua = "", $outputWidgetHtml = true, $widgetTitle = "", $post_style = "padding-top:10px;padding-bottom:10px;", $postimage_style = "display:inline;", $posttitle_style = "display:inline;", $postauthor_style = "display:inline;", $postdate_style = "display:inline;", $postteaser_style = "display:inline;", $before_widget = "", $after_widget = "", $before_title = "", $after_title = "", $alignment = "", $show_featuredimage = false, $show_posttitle = true, $show_postauthor = true, $show_postdate = true, $show_postteaser = false, $recommendablePostTypes = array(), $trackingCode = "") {
+function kp_renderWidget($numPostsToRecommend = -1, $recommendedPosts = array(), $template = "", $ip = "", $ua = "", $outputWidgetHtml = true, $widgetTitle = "", $post_style = "padding-top:10px;padding-bottom:10px;", $postimage_style = "display:inline;", $posttitle_style = "display:inline;", $postauthor_style = "display:inline;", $postdate_style = "display:inline;", $postteaser_style = "display:inline;", $before_widget = "", $after_widget = "", $before_title = "", $after_title = "", $alignment = "", $show_featuredimage = false, $show_posttitle = true, $show_postauthor = true, $show_postdate = true, $show_postteaser = false, $recommendablePostTypes = array(), $trackingCode = "", $testModeValue = null) {
 	global $kp_templates, $kp_defaultAlignment;
 	
 	// Don't show the widget if we are in test mode and if the user isn't an admin
-	if (get_option("AdminTestMode", "false") == "true" && !kp_isUserAdmin()) {
+	if (get_option("kp_AdminTestMode", "false") == "true" && !kp_isUserAdmin()) {
 		return array("widgetHtml" => "", "recommender" => null);
 	}
 	
@@ -571,7 +574,7 @@ function kp_renderWidget($numPostsToRecommend = -1, $recommendedPosts = array(),
 	// If recommendedPosts have been passed default to those or else recommend posts
 	$recommender = null;
 	if (count($recommendedPosts) == 0) {
-		$recommender = kp_runRecommender($numPostsToRecommend, $ip, $ua, $recommendablePostTypes);
+		$recommender = kp_runRecommender($numPostsToRecommend, $ip, $ua, $recommendablePostTypes, $testModeValue);
 		$recommendedPosts = $recommender->posts;
 	}
 	
@@ -583,7 +586,7 @@ function kp_renderWidget($numPostsToRecommend = -1, $recommendedPosts = array(),
 		
 		// Start the data for the widget
 		$data = array();
-		$data["isTestMode"] = (get_option("AdminTestMode", "false") == "true" && kp_isUserAdmin());
+		$data["isTestMode"] = (get_option("kp_AdminTestMode", "false") == "true" && kp_isUserAdmin());
 		$data["kp_widget:before_widget"] = $before_widget;
 		$data["kp_widget:after_widget"] = $after_widget;
 		$data["kp_widget:title"] = $widgetTitle;
@@ -638,11 +641,12 @@ function kp_renderWidget($numPostsToRecommend = -1, $recommendedPosts = array(),
  * @param string $ip: The ip address of the user to recommend posts for (if blank, this will be found)
  * @param string $ua: The user agent of the user to recommend posts for (if blank, this will be found)
  * @param array<string> $recommendablePostTypes: An array of post types to recommend (if empty, recommend all post types)
+ * @param bool $testModeValue: Indicates if we are in test mode and what value to look for
  * @return kp_recommender: object with posts to recommend (to use, call $recommender->posts)
  *
  * @since 1.2.5
  */
-function kp_runRecommender($numPostsToRecommend = -1, $ip = "", $ua = "", $recommendablePostTypes = array()) {
+function kp_runRecommender($numPostsToRecommend = -1, $ip = "", $ua = "", $recommendablePostTypes = array(), $testModeValue = null) {
 	global $defaultNumPostsToRecommend, $defaultNumClosestUsersToUse; 
 	
 	// Check if $ip and $ua have been passed, if not, generate them
@@ -658,7 +662,7 @@ function kp_runRecommender($numPostsToRecommend = -1, $ip = "", $ua = "", $recom
 	
 	// Run the recommender
 	$recommender = new kp_recommender($ip, $ua);
-	$recommender->run($numPostsToRecommend, $defaultNumClosestUsersToUse, $recommendablePostTypes);
+	$recommender->run($numPostsToRecommend, $defaultNumClosestUsersToUse, $recommendablePostTypes, $testModeValue);
 	
 	return $recommender;
 }
@@ -683,12 +687,12 @@ function kp_saveVisit($postObject) {
 	// TODO: Create a better way to check if the user is visiting the post
 
 	// Check if we want to collect statistics
-	if (get_option("CollectStatistics", "true") == "false") {
+	if (get_option("kp_CollectStatistics", "true") == "false") {
 		return;
 	}
 	
 	// If we are in test mode and if the current user is an admin, don't collect their visit data
-	if (get_option("AdminTestMode", "false") == "true" && kp_isUserAdmin()) {
+	if (get_option("kp_AdminTestMode", "false") == "true" && kp_isUserAdmin()) {
 		return;
 	}
 	// At this point, a non-admin user's visit will be tracked even if we are in test mode
@@ -703,5 +707,49 @@ function kp_saveVisit($postObject) {
 	$recommender->saveVisit($wp_query->post->ID);
 
 	return null;
+}
+
+/**
+ * Update the option name and value to the new option name
+ *
+ * @param string $optionName: The option to update
+ * @param string $newName: The name of the option to update to
+ * @return null
+ *
+ * @since 1.3.1
+ */ 
+function kp_updateOption($optionName, $newName) {
+	$optionValue = get_option($optionName);
+	
+	if ($optionValue !== FALSE) {
+		delete_option($optionName);
+		update_option($newName, $optionValue);
+	}
+}
+
+/**
+ * Update the options so they are more namespaced and won't conflict with other options in the site
+ *
+ * @return null
+ *
+ * @since 1.3.1
+ */ 
+function kp_updateOptions() {
+	if (get_option("kp_OptionsNamespaced", "false") == "true") {
+		return;
+	}
+
+	kp_updateOption("AdminTestMode", "kp_AdminTestMode");
+	kp_updateOption("AttemptToBlockBotVisits", "kp_AttemptToBlockBotVisits");
+	kp_updateOption("CollectStatistics", "kp_CollectStatistics");
+	kp_updateOption("TrackGA", "kp_TrackGA");
+	kp_updateOption("FirstSave", "kp_FirstSave");
+	kp_updateOption("RecommendPosts", "kp_RecommendPosts");
+	kp_updateOption("RecommendPages", "kp_RecommendPages");
+	kp_updateOption("BlockedIPs", "kp_BlockedIPs");
+	kp_updateOption("HideFeedbackBox", "kp_HideFeedbackBox");
+	kp_updateOption("FeedbackMsg", "kp_FeedbackMsg");
+	
+	update_option("kp_OptionsNamespaced", "true");
 }
 ?>

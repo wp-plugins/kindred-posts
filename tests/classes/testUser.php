@@ -85,6 +85,6 @@ class kp_testUser {
 	 **/
 	public function savePostVisit($postID) {
 		$this->visitedPostIDs[$postID] = true;
-		$this->recommender->saveVisit($postID);
+		$this->recommender->saveVisit($postID, true);
 	}
 } // End kp_testUser class

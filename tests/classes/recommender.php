@@ -5,6 +5,7 @@ class kp_test_recommender {
 	public function __construct() { }
 
 	public function runTests() {
+		$isTestMode = get_option("kp_AdminTestMode", "false");
 		$this->test1();
 		$this->test2();
 		$this->test3();
@@ -13,6 +14,7 @@ class kp_test_recommender {
 		$this->test6(); // (4 users, 1 user closely related to 1 other user)
 		$this->test7(); // (5 users, 1 user closely related to 2 other users)
 		$this->test8(); // Test kp_runRecommender returns the same results as the the recommender
+		update_option("kp_AdminTestMode", $isTestMode);
 	}
 	
 	/**
@@ -203,7 +205,7 @@ class kp_test_recommender {
 			$user4 = new kp_testUser(array($tK[4], $tK[5], $tK[6]), array()); 		
 			$user5 = new kp_testUser(array($tK[4], $tK[5], $tK[6]), array());
 			
-			$user1->recommender->run(2, 2);
+			$user1->recommender->run(2, 2, array(), true);
 
 			$test = true;
 			// Check if the post #2 and if #3 or #5 were recommended

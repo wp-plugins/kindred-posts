@@ -13,8 +13,9 @@ global $kp_defaultPostTitle, $kp_defaultPostAuthor, $kp_defaultPostDate, $kp_def
 global $kp_defaultFeaturedImage, $kp_defaultOrientation, $kp_defaultAlignment, $kp_firstPost;
 global $kp_defaultCollectStatistics, $kp_defaultAttemptToBlockBotVisits, $kp_defaultAdminTestMode;
 global $kp_botArray;
+global $kp_pluginUrl, $kp_helpUrl, $kp_supportForumUrl, $kp_feedbackUrl, $kp_donationUrl;
 
-$kp_CodeVersion = "1.3.0"; // The version of code
+$kp_CodeVersion = "1.3.1"; // The version of code
 $kp_DbVersion = "1.1"; // The database version
 
 // An easy way to get the database table

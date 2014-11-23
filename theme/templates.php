@@ -80,6 +80,7 @@
 	
 	==== END ====
 **/
+global $kp_templates;
 
 // Initialize the template variables
 $kp_templates = array();
@@ -100,7 +101,7 @@ try {
  * This controls how the Kindred Posts widget will be displayed within your theme.
  *		This is composed of the $kp_templates["kp_recommender"] template
  **/
-if ($kp_templates["kp_widget"] == '') {
+if (isset($kp_templates["kp_widget"]) && $kp_templates["kp_widget"] == '') {
 	$kp_templates["kp_widget"] = '
 		{kp_widget:before_widget}
 		
@@ -118,7 +119,7 @@ if ($kp_templates["kp_widget"] == '') {
  * This controls how {kp_recommender} will be displayed within $kp_templates["kp_widget"]
  *		This is composed of the $kp_templates["kp_recommendedPost"] template
  **/
-if ($kp_templates["kp_recommender"] == "") {
+if (isset($kp_templates["kp_recommender"]) && $kp_templates["kp_recommender"] == "") {
 	$kp_templates["kp_recommender"] = '
 		<div class="kindredposts">
 			{kp_recommendedPosts} {comment}Outputs a list of kp_recommenderPost objects here{/comment}
@@ -129,7 +130,7 @@ if ($kp_templates["kp_recommender"] == "") {
 /**
  * This controls how {kp_recommendedPosts} will be displayed within $kp_templates["kp_recommender"]
  **/
-if ($kp_templates["kp_recommendedPost"] == "") {
+if (isset($kp_templates["kp_recommendedPost"]) && $kp_templates["kp_recommendedPost"] == "") {
 	$kp_templates["kp_recommendedPost"] = '
 	{if has_content}
 
