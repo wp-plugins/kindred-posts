@@ -4,7 +4,7 @@ Donate link: http://AiSpork.com/
 Tags: data mining, artificial intelligence, recommendations, similar posts, related posts, relevant content, content curation, user engagement, analytics, personalization
 Requires at least: 3.1
 Tested up to: 4.2
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
