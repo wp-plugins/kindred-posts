@@ -52,7 +52,7 @@ The "theme" directory allows you to control how different aspects of the plugin 
 == Changelog ==
 
 = 1.3.2 =
-* Adding banner and logo for Wordpress.org repository. Testing up to Wordpress 4.2-alpha.
+* Adding banner and logo for Wordpress.org repository. Testing up to Wordpress 4.3.
 = 1.3.1 =
 * Fixes for include files and global configuration variables.
 = 1.3.0 =
