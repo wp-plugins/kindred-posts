@@ -1,11 +1,11 @@
 <?php
 // Load configuration, functions, and classes for the plugin
-include_once("..\..\..\..\wp-load.php");
-include_once("..\kindred-posts-index.php");
+include_once("../../../../wp-load.php");
+include_once("../kindred-posts-index.php");
 
 // Check that the user is an admin
 if (!kp_isUserAdmin()) {
-	die("You do not have access to this page");
+	die("You do not have access to this page, please log in as admin");
 }
 
 // Load the test classes
@@ -20,6 +20,7 @@ include_once('classes\plugin.php');
 
 $testPostID = 1; // A sample post to use for testing
 $numTestsToInsert = -1; // Set to <= 0 if you want to insert data
+
 $testRenderer = false || (isset($_GET["testAll"]) && ($_GET["testAll"] == "true"));
 $testRecommendedPost = false || (isset($_GET["testAll"]) && ($_GET["testAll"] == "true"));
 $testRecommender = false || (isset($_GET["testAll"]) && ($_GET["testAll"] == "true"));
